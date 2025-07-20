@@ -1,16 +1,15 @@
 """Tests for type coercion functionality in injectors."""
 
-import os
 import tempfile
 from pathlib import Path
 
 import pytest
 
-from config_injector.models import Spec, Provider, Injector, Target
 from config_injector.core import build_runtime_context
-from config_injector.injectors import resolve_injector, _coerce_type
-from config_injector.token_engine import TokenEngine
+from config_injector.injectors import _coerce_type, resolve_injector
+from config_injector.models import Injector, Spec, Target
 from config_injector.providers import load_providers
+from config_injector.token_engine import TokenEngine
 
 
 class TestTypeCoercion:
@@ -264,7 +263,7 @@ class TestPathTypeCoercionIntegration:
             )
 
             # Build runtime context
-            context = build_runtime_context(spec)
+            context = build_runtime_context()
 
             # Load providers
             providers = load_providers(spec, context)
@@ -306,7 +305,7 @@ class TestPathTypeCoercionIntegration:
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)
@@ -347,7 +346,7 @@ class TestPathTypeCoercionIntegration:
             )
 
             # Build runtime context
-            context = build_runtime_context(spec)
+            context = build_runtime_context()
 
             # Load providers
             providers = load_providers(spec, context)
@@ -394,7 +393,7 @@ class TestPathTypeCoercionIntegration:
             )
 
             # Build runtime context
-            context = build_runtime_context(spec)
+            context = build_runtime_context()
 
             # Load providers
             providers = load_providers(spec, context)
@@ -437,7 +436,7 @@ class TestListDelimiterIntegration:
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)
@@ -474,7 +473,7 @@ class TestListDelimiterIntegration:
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)
@@ -509,7 +508,7 @@ class TestListDelimiterIntegration:
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)
@@ -546,7 +545,7 @@ class TestListDelimiterIntegration:
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)
@@ -587,7 +586,7 @@ class TestListDelimiterIntegration:
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)
@@ -623,7 +622,7 @@ class TestListDelimiterIntegration:
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)

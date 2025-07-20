@@ -1,17 +1,16 @@
 """Tests for execution and cleanup functionality."""
 
-import os
 import tempfile
 from pathlib import Path
 
 import pytest
 
-from config_injector.models import Spec, Provider, Injector, Target, Stream
 from config_injector.core import build_runtime_context, execute
 from config_injector.injectors import resolve_injector
-from config_injector.token_engine import TokenEngine
+from config_injector.models import Injector, Spec, Target
 from config_injector.providers import load_providers
-from config_injector.streams import StreamWriter, StreamConfig
+from config_injector.streams import StreamConfig, StreamWriter
+from config_injector.token_engine import TokenEngine
 
 
 def test_file_cleanup_after_execution():
@@ -33,7 +32,7 @@ def test_file_cleanup_after_execution():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Load providers
     providers = load_providers(spec, context)
@@ -60,7 +59,7 @@ def test_file_cleanup_after_execution():
     stream_writer = StreamWriter()
 
     # Execute the process
-    result = execute(spec, build, stream_writer, resolved_injectors, context)
+    execute(spec, build, stream_writer, resolved_injectors, context)
 
     # Verify that the file was deleted
     assert not file_path.exists()
@@ -88,7 +87,7 @@ def test_stdin_fragment_cleanup_after_execution():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Load providers
     providers = load_providers(spec, context)
@@ -113,7 +112,7 @@ def test_stdin_fragment_cleanup_after_execution():
     stream_writer = StreamWriter()
 
     # Execute the process
-    result = execute(spec, build, stream_writer, resolved_injectors, context)
+    execute(spec, build, stream_writer, resolved_injectors, context)
 
     # No explicit verification needed for stdin cleanup as it's handled by the subprocess module
     # This test is mainly to ensure that the execution with stdin fragments works without errors
@@ -134,13 +133,13 @@ def test_execution_result_stdout_path_capture():
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)
 
         # Create token engine
-        token_engine = TokenEngine(context, providers)
+        TokenEngine(context, providers)
 
         # Create a build result
         from config_injector.core import build_env_and_argv
@@ -186,13 +185,13 @@ def test_execution_result_stderr_path_capture():
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)
 
         # Create token engine
-        token_engine = TokenEngine(context, providers)
+        TokenEngine(context, providers)
 
         # Create a build result
         from config_injector.core import build_env_and_argv
@@ -239,13 +238,13 @@ def test_execution_result_both_stdout_stderr_paths():
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)
 
         # Create token engine
-        token_engine = TokenEngine(context, providers)
+        TokenEngine(context, providers)
 
         # Create a build result
         from config_injector.core import build_env_and_argv
@@ -298,13 +297,13 @@ def test_execution_result_no_stream_paths():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Load providers
     providers = load_providers(spec, context)
 
     # Create token engine
-    token_engine = TokenEngine(context, providers)
+    TokenEngine(context, providers)
 
     # Create a build result
     from config_injector.core import build_env_and_argv
@@ -340,13 +339,13 @@ def test_execution_result_json_format_paths():
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)
 
         # Create token engine
-        token_engine = TokenEngine(context, providers)
+        TokenEngine(context, providers)
 
         # Create a build result
         from config_injector.core import build_env_and_argv

@@ -8,24 +8,23 @@ This module provides thorough integration testing covering:
 - Complex scenarios combining multiple features
 """
 
-import os
 import tempfile
-import json
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
-import yaml
 
-from config_injector.models import Spec, Provider, Injector, Target, FilterRule
 from config_injector.core import (
-    load_spec, build_runtime_context, dry_run, execute,
-    build_env_and_argv
+    build_env_and_argv,
+    build_runtime_context,
+    dry_run,
+    execute,
+    load_spec,
 )
-from config_injector.providers import load_providers
 from config_injector.injectors import resolve_injector
-from config_injector.token_engine import TokenEngine
+from config_injector.models import Injector, Provider, Spec, Target
+from config_injector.providers import load_providers
 from config_injector.streams import StreamWriter
+from config_injector.token_engine import TokenEngine
 
 
 class TestDryRunComprehensive:
@@ -64,15 +63,15 @@ class TestDryRunComprehensive:
             )
         )
 
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         report = dry_run(spec, context)
 
         # Verify report structure
-        assert hasattr(report, 'providers')
-        assert hasattr(report, 'resolved')
-        assert hasattr(report, 'build')
-        assert hasattr(report, 'text_summary')
-        assert hasattr(report, 'json_summary')
+        assert hasattr(report, "providers")
+        assert hasattr(report, "resolved")
+        assert hasattr(report, "build")
+        assert hasattr(report, "text_summary")
+        assert hasattr(report, "json_summary")
 
         # Verify text summary contains expected sections
         assert "Providers Loaded" in report.text_summary
@@ -100,7 +99,7 @@ class TestDryRunComprehensive:
     def test_dry_run_with_dotenv_provider(self):
         """Test dry-run with dotenv provider."""
         # Create temporary dotenv file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
             f.write("TEST_KEY=test_value\n")
             f.write("ANOTHER_KEY=another_value\n")
             dotenv_path = f.name
@@ -130,7 +129,7 @@ class TestDryRunComprehensive:
                 )
             )
 
-            context = build_runtime_context(spec)
+            context = build_runtime_context()
             report = dry_run(spec, context)
 
             # Verify provider was loaded
@@ -172,7 +171,7 @@ class TestDryRunComprehensive:
             )
         )
 
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         report = dry_run(spec, context)
 
         # Find the sensitive injection
@@ -220,7 +219,7 @@ class TestLiveRunComprehensive:
             )
         )
 
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         providers = load_providers(spec, context)
         token_engine = TokenEngine(context, providers)
 
@@ -260,7 +259,7 @@ class TestLiveRunComprehensive:
             )
         )
 
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         providers = load_providers(spec, context)
         token_engine = TokenEngine(context, providers)
 
@@ -298,7 +297,7 @@ class TestLiveRunComprehensive:
             )
         )
 
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         providers = load_providers(spec, context)
         token_engine = TokenEngine(context, providers)
 
@@ -345,7 +344,7 @@ class TestFileInjectorComprehensive:
             )
         )
 
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         report = dry_run(spec, context)
 
         # Verify file injection is planned
@@ -378,7 +377,7 @@ class TestFileInjectorComprehensive:
             )
         )
 
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         providers = load_providers(spec, context)
         token_engine = TokenEngine(context, providers)
 
@@ -437,7 +436,7 @@ class TestFileInjectorComprehensive:
             )
         )
 
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         providers = load_providers(spec, context)
         token_engine = TokenEngine(context, providers)
 
@@ -492,7 +491,7 @@ class TestStdinInjectorComprehensive:
             )
         )
 
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         report = dry_run(spec, context)
 
         # Verify stdin injection is planned
@@ -523,7 +522,7 @@ class TestStdinInjectorComprehensive:
             )
         )
 
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         providers = load_providers(spec, context)
         token_engine = TokenEngine(context, providers)
 
@@ -536,7 +535,7 @@ class TestStdinInjectorComprehensive:
 
         # Verify stdin data was set
         assert build.stdin_data is not None
-        assert test_input.encode('utf-8') == build.stdin_data
+        assert test_input.encode("utf-8") == build.stdin_data
 
         stream_writer = StreamWriter()
         result = execute(spec, build, stream_writer, resolved_injectors, context)
@@ -572,7 +571,7 @@ class TestStdinInjectorComprehensive:
             )
         )
 
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         providers = load_providers(spec, context)
         token_engine = TokenEngine(context, providers)
 
@@ -585,7 +584,7 @@ class TestStdinInjectorComprehensive:
 
         # Verify all fragments were aggregated
         assert build.stdin_data is not None
-        stdin_str = build.stdin_data.decode('utf-8')
+        stdin_str = build.stdin_data.decode("utf-8")
         assert "first fragment" in stdin_str
         assert "second fragment" in stdin_str
         assert "third fragment" in stdin_str
@@ -603,7 +602,7 @@ class TestComplexIntegrationScenarios:
     def test_full_pipeline_all_injector_types(self):
         """Test a complete pipeline with all injector types."""
         # Create temporary dotenv file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
             f.write("DB_HOST=localhost\n")
             f.write("DB_PORT=5432\n")
             f.write("SECRET_KEY=secret123\n")
@@ -666,7 +665,7 @@ class TestComplexIntegrationScenarios:
             )
 
             # Test dry-run first
-            context = build_runtime_context(spec)
+            context = build_runtime_context()
             report = dry_run(spec, context)
 
             # Verify all injectors are planned
@@ -759,7 +758,7 @@ target:
 """
 
         # Create temporary YAML file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(spec_content)
             yaml_path = Path(f.name)
 
@@ -774,7 +773,7 @@ target:
             assert spec.target.working_dir == "/tmp"
 
             # Test dry-run
-            context = build_runtime_context(spec)
+            context = build_runtime_context()
             report = dry_run(spec, context)
 
             # Verify dry-run works with loaded spec

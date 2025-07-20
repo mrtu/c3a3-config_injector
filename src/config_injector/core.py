@@ -2,20 +2,24 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 import subprocess
-import tempfile
+from dataclasses import dataclass
 from datetime import datetime
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING
 
 import yaml
 
-from .models import Spec, Provider, Injector
-from .types import EnvMap, ProviderMap, Argv, Errors, ProviderMaps, RuntimeContext
-from .injectors import ResolvedInjector
-from .streams import StreamWriter
+from .models import Spec
+from .types import Argv, EnvMap, Errors, ProviderMaps, RuntimeContext
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from .injectors import ResolvedInjector
+    from .streams import StreamWriter
 
 
 @dataclass
@@ -24,8 +28,8 @@ class BuildResult:
 
     env: EnvMap
     argv: Argv
-    stdin_data: Optional[bytes]
-    files: List[Path]
+    stdin_data: bytes | None
+    files: list[Path]
     errors: Errors
 
 
@@ -35,8 +39,8 @@ class ExecutionResult:
 
     exit_code: int
     duration_s: float
-    stdout_path: Optional[Path]
-    stderr_path: Optional[Path]
+    stdout_path: Path | None
+    stderr_path: Path | None
 
 
 @dataclass
@@ -56,7 +60,7 @@ def load_spec(path: Path) -> Spec:
     return Spec(**data)
 
 
-def build_runtime_context(spec: Spec, *, env: Optional[EnvMap] = None, seq: int = 1) -> RuntimeContext:
+def build_runtime_context(*, env: EnvMap | None = None, seq: int = 1) -> RuntimeContext:
     """Build runtime context for token expansion."""
     if env is None:
         env = dict(os.environ)
@@ -76,8 +80,8 @@ def build_env_and_argv(
     context: RuntimeContext,
 ) -> BuildResult:
     """Build final environment and argv from resolved injectors."""
-    from .token_engine import TokenEngine
     from .providers import load_providers
+    from .token_engine import TokenEngine
 
     env = context.env.copy() if spec.env_passthrough else {}
     argv = spec.target.command.copy()
@@ -86,26 +90,24 @@ def build_env_and_argv(
     errors = []
 
     # Collect positional injectors to be appended at the end
-    positionals = [(r, r.injector.order or 0) for r in resolved if r.injector.kind == 'positional']
+    positionals = [(r, r.injector.order or 0) for r in resolved if r.injector.kind == "positional"]
     positionals.sort(key=lambda x: x[1])  # Sort by order
 
     # Process other injectors
     for resolved_inj in resolved:
-        if resolved_inj.injector.kind == 'positional':
+        if resolved_inj.injector.kind == "positional":
             continue  # Already processed
 
         if resolved_inj.value is not None:
-            if resolved_inj.injector.kind == 'env_var':
+            if resolved_inj.injector.kind == "env_var":
                 for alias in resolved_inj.applied_aliases:
                     env[alias] = resolved_inj.value
-            elif resolved_inj.injector.kind == 'named':
+            elif resolved_inj.injector.kind == "named" or resolved_inj.injector.kind == "file":
                 argv.extend(resolved_inj.argv_segments)
-            elif resolved_inj.injector.kind == 'file':
-                argv.extend(resolved_inj.argv_segments)
-            elif resolved_inj.injector.kind == 'stdin_fragment':
+            elif resolved_inj.injector.kind == "stdin_fragment":
                 if stdin_data is None:
-                    stdin_data = b''
-                stdin_data += resolved_inj.value.encode('utf-8')
+                    stdin_data = b""
+                stdin_data += resolved_inj.value.encode("utf-8")
 
         files.extend(resolved_inj.files_created)
         errors.extend(resolved_inj.errors)
@@ -124,7 +126,7 @@ def build_env_and_argv(
     # Create alias-to-value mapping for direct token replacement
     alias_values = {}
     for resolved_inj in resolved:
-        if resolved_inj.injector.kind == 'file' and resolved_inj.files_created:
+        if resolved_inj.injector.kind == "file" and resolved_inj.files_created:
             # Map aliases to file paths
             for alias in resolved_inj.injector.aliases:
                 alias_values[alias] = str(resolved_inj.files_created[0])
@@ -140,7 +142,7 @@ def build_env_and_argv(
 
         # First, handle alias-based tokens like ${--config}
         import re
-        token_pattern = r'\$\{([^}]+)\}'
+        token_pattern = r"\$\{([^}]+)\}"
         matches = re.finditer(token_pattern, expanded_arg)
 
         for match in matches:
@@ -150,11 +152,8 @@ def build_env_and_argv(
                 expanded_arg = expanded_arg.replace(match.group(0), alias_values[token_content])
 
         # Then, handle standard tokens through token engine
-        try:
+        with contextlib.suppress(Exception):
             expanded_arg = token_engine.expand(expanded_arg)
-        except Exception:
-            # If expansion fails, keep the current value
-            pass
 
         expanded_argv.append(expanded_arg)
 
@@ -167,7 +166,7 @@ def build_env_and_argv(
     )
 
 
-def execute(spec: Spec, build: BuildResult, streams: StreamWriter, resolved: Optional[Sequence[ResolvedInjector]] = None, context: Optional[RuntimeContext] = None) -> ExecutionResult:
+def execute(spec: Spec, build: BuildResult, streams: StreamWriter, resolved: Sequence[ResolvedInjector] | None = None, context: RuntimeContext | None = None) -> ExecutionResult:
     """Execute the target process."""
     import time
 
@@ -193,9 +192,9 @@ def execute(spec: Spec, build: BuildResult, streams: StreamWriter, resolved: Opt
                 streams.register_sensitive_values(sensitive_values)
 
         # Determine shell execution
-        if spec.target.shell and spec.target.shell != 'none':
+        if spec.target.shell and spec.target.shell != "none":
             # Use shell execution
-            cmd = ' '.join(build.argv)
+            cmd = " ".join(build.argv)
             process = subprocess.Popen(
                 cmd,
                 shell=True,
@@ -224,8 +223,8 @@ def execute(spec: Spec, build: BuildResult, streams: StreamWriter, resolved: Opt
             process.stdin.close()
 
         # Stream output
-        stdout_data = b''
-        stderr_data = b''
+        stdout_data = b""
+        stderr_data = b""
 
         while True:
             stdout_chunk = process.stdout.read(1024)
@@ -247,10 +246,8 @@ def execute(spec: Spec, build: BuildResult, streams: StreamWriter, resolved: Opt
 
         # Clean up temporary files after execution
         for file_path in build.files:
-            try:
+            with contextlib.suppress(Exception):
                 file_path.unlink(missing_ok=True)
-            except Exception:
-                pass
 
         return ExecutionResult(
             exit_code=exit_code,
@@ -259,22 +256,20 @@ def execute(spec: Spec, build: BuildResult, streams: StreamWriter, resolved: Opt
             stderr_path=streams.stderr_config.path if streams.stderr_config else None,
         )
 
-    except Exception as e:
+    except Exception:
         # Clean up temporary files on error
         for file_path in build.files:
-            try:
+            with contextlib.suppress(Exception):
                 file_path.unlink(missing_ok=True)
-            except Exception:
-                pass
         raise
 
 
 def dry_run(spec: Spec, context: RuntimeContext) -> DryRunReport:
     """Perform a dry run showing what would be executed."""
     # Import here to avoid circular imports
+    from .injectors import resolve_injector
     from .providers import load_providers
     from .token_engine import TokenEngine
-    from .injectors import resolve_injector
 
     # Increment sequence counter
     context.seq += 1
@@ -314,7 +309,7 @@ def _generate_text_summary(
     build: BuildResult,
 ) -> str:
     """Generate human-readable text summary."""
-    from .types import mask_sensitive_value, MASKED_VALUE
+    from .types import MASKED_VALUE, mask_sensitive_value
 
     lines = []
 
@@ -356,7 +351,7 @@ def _generate_json_summary(
     build: BuildResult,
 ) -> dict:
     """Generate machine-readable JSON summary."""
-    from .types import mask_sensitive_value, MASKED_VALUE
+    from .types import MASKED_VALUE, mask_sensitive_value
 
     # Mask sensitive values in argv
     masked_argv = build.argv.copy()

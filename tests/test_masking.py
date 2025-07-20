@@ -2,17 +2,15 @@
 
 import io
 import os
-import tempfile
-from pathlib import Path
 
 import pytest
 
-from config_injector.models import Spec, Provider, Injector, Target, Stream
-from config_injector.core import build_runtime_context, dry_run, execute
+from config_injector.core import build_runtime_context, dry_run
 from config_injector.injectors import resolve_injector
-from config_injector.token_engine import TokenEngine
+from config_injector.models import Injector, Provider, Spec, Stream, Target
 from config_injector.providers import load_providers
-from config_injector.streams import StreamWriter, StreamConfig
+from config_injector.streams import StreamWriter
+from config_injector.token_engine import TokenEngine
 from config_injector.types import MASKED_VALUE
 
 
@@ -35,7 +33,7 @@ def test_sensitive_injector_masking():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Load providers
     providers = load_providers(spec, context)
@@ -85,7 +83,7 @@ def test_sensitive_injector_stream_masking():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Perform dry run to get resolved injectors and build result
     dry_run_result = dry_run(spec, context)
@@ -99,23 +97,23 @@ def test_sensitive_injector_stream_masking():
 
         def write_stdout(self, data: bytes) -> None:
             # Decode bytes to string
-            text = data.decode('utf-8', errors='replace')
+            text = data.decode("utf-8", errors="replace")
 
             # Mask sensitive values
             masked_text = self._mask_sensitive_data(text)
 
             # Write masked text to buffer
-            stdout_buffer.write(masked_text.encode('utf-8'))
+            stdout_buffer.write(masked_text.encode("utf-8"))
 
         def write_stderr(self, data: bytes) -> None:
             # Decode bytes to string
-            text = data.decode('utf-8', errors='replace')
+            text = data.decode("utf-8", errors="replace")
 
             # Mask sensitive values
             masked_text = self._mask_sensitive_data(text)
 
             # Write masked text to buffer
-            stderr_buffer.write(masked_text.encode('utf-8'))
+            stderr_buffer.write(masked_text.encode("utf-8"))
 
     # Create stream writer
     streams = TestStreamWriter()
@@ -129,7 +127,7 @@ def test_sensitive_injector_stream_masking():
     streams.write_stdout(b"This contains the super_secret_value and should be masked")
 
     # Verify the sensitive value is masked in the output
-    stdout_content = stdout_buffer.getvalue().decode('utf-8')
+    stdout_content = stdout_buffer.getvalue().decode("utf-8")
     assert "super_secret_value" not in stdout_content
     assert MASKED_VALUE in stdout_content
 
@@ -167,7 +165,7 @@ def test_multiple_sensitive_injectors():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Perform dry run to get text summary
     dry_run_result = dry_run(spec, context)
@@ -215,13 +213,12 @@ def test_provider_masking():
     )
 
     # Set up environment with test values
-    import os
     original_env = os.environ.copy()
     os.environ["TEST_SECRET"] = "super_secret_value"
 
     try:
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Perform dry run
         dry_run_result = dry_run(spec, context)
@@ -259,7 +256,7 @@ def test_error_message_masking():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Perform dry run
     dry_run_result = dry_run(spec, context)
@@ -307,7 +304,7 @@ def test_partial_string_masking():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Perform dry run
     dry_run_result = dry_run(spec, context)
@@ -338,7 +335,7 @@ def test_case_sensitive_masking():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Perform dry run
     dry_run_result = dry_run(spec, context)
@@ -368,7 +365,7 @@ def test_file_path_masking():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Perform dry run
     dry_run_result = dry_run(spec, context)
@@ -396,7 +393,7 @@ def test_stdin_fragment_masking():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Perform dry run
     dry_run_result = dry_run(spec, context)
@@ -434,13 +431,12 @@ def test_token_expansion_masking():
     )
 
     # Set up environment
-    import os
     original_env = os.environ.copy()
     os.environ["SECRET_KEY"] = "token_secret_value"
 
     try:
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Perform dry run
         dry_run_result = dry_run(spec, context)
@@ -471,14 +467,14 @@ def test_json_log_format_masking():
             )
         ],
         target=Target(
-            working_dir="/tmp", 
+            working_dir="/tmp",
             command=["echo", "${JSON_SECRET}"],
             stdout=Stream(path="/tmp/test.log", format="json", tee_terminal=False)
         )
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Create a stream writer with JSON format
     stdout_buffer = io.BytesIO()
@@ -488,7 +484,7 @@ def test_json_log_format_masking():
 
         def write_stdout(self, data: bytes) -> None:
             # Decode bytes to string
-            text = data.decode('utf-8', errors='replace')
+            text = data.decode("utf-8", errors="replace")
 
             # Mask sensitive values
             masked_text = self._mask_sensitive_data(text)
@@ -499,11 +495,11 @@ def test_json_log_format_masking():
             for line in masked_text.splitlines():
                 if line.strip():
                     json_line = {
-                        'ts': datetime.now().isoformat(),
-                        'stream': 'stdout',
-                        'msg': line.strip(),
+                        "ts": datetime.now().isoformat(),
+                        "stream": "stdout",
+                        "msg": line.strip(),
                     }
-                    stdout_buffer.write((json.dumps(json_line) + '\n').encode('utf-8'))
+                    stdout_buffer.write((json.dumps(json_line) + "\n").encode("utf-8"))
 
     # Perform dry run to get resolved injectors
     dry_run_result = dry_run(spec, context)
@@ -520,7 +516,7 @@ def test_json_log_format_masking():
     streams.write_stdout(b"Processing json_secret_value in JSON format")
 
     # Verify the sensitive value is masked in JSON output
-    stdout_content = stdout_buffer.getvalue().decode('utf-8')
+    stdout_content = stdout_buffer.getvalue().decode("utf-8")
     assert "json_secret_value" not in stdout_content
     assert MASKED_VALUE in stdout_content
 
@@ -544,7 +540,7 @@ def test_environment_variable_names_security():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Perform dry run
     dry_run_result = dry_run(spec, context)
@@ -577,7 +573,7 @@ def test_working_directory_masking():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Perform dry run
     dry_run_result = dry_run(spec, context)
@@ -622,7 +618,7 @@ def test_multiple_overlapping_sensitive_values():
     )
 
     # Build runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Perform dry run
     dry_run_result = dry_run(spec, context)

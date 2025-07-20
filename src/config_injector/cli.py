@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
+import contextlib
 import sys
-from pathlib import Path
-from typing import Optional
+from pathlib import Path  # noqa: TC003
 
 import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from .core import load_spec, build_runtime_context, dry_run, execute
+from .core import build_runtime_context, dry_run, execute, load_spec
 from .streams import StreamWriter, prepare_stream
 
 app = typer.Typer(help="Configuration Wrapping Framework")
@@ -23,11 +23,11 @@ def run(
     spec_file: Path = typer.Argument(..., help="Path to YAML specification file"),
     dry_run_flag: bool = typer.Option(False, "--dry-run", help="Show what would be executed without running"),
     json_output: bool = typer.Option(False, "--json", help="Output in JSON format (only with --dry-run)"),
-    profile: Optional[str] = typer.Option(None, "--profile", help="Profile to use"),
+    profile: str | None = typer.Option(None, "--profile", help="Profile to use"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Enable quiet mode (minimal output)"),
-    env_passthrough: Optional[bool] = typer.Option(None, "--env-passthrough/--no-env-passthrough", help="Override env_passthrough setting"),
-    mask_defaults: Optional[bool] = typer.Option(None, "--mask-defaults/--no-mask-defaults", help="Override mask_defaults setting"),
+    env_passthrough: bool | None = typer.Option(None, "--env-passthrough/--no-env-passthrough", help="Override env_passthrough setting"),
+    mask_defaults: bool | None = typer.Option(None, "--mask-defaults/--no-mask-defaults", help="Override mask_defaults setting"),
     strict: bool = typer.Option(False, "--strict", help="Enable strict validation"),
 ) -> None:
     """Run a configuration specification."""
@@ -65,7 +65,7 @@ def run(
                     sys.exit(1)
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Perform validation if strict mode is enabled
         if strict:
@@ -130,7 +130,7 @@ def validate(
             console.print(f"Injectors: {len(spec.configuration_injectors)}")
 
         # Build runtime context for semantic validation
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Perform dry run to catch runtime issues
         if verbose and not quiet:
@@ -188,13 +188,13 @@ def explain(
             console.print(f"[blue]Loaded specification from {spec_file}[/blue]")
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Perform dry run
         report = dry_run(spec, context)
 
         # Display detailed explanation
-        _display_explanation(spec, report, verbose=verbose, quiet=quiet)
+        _display_explanation(spec, report)
 
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
@@ -215,10 +215,9 @@ def print_schema() -> None:
 
 def _execute_spec(spec, context, verbose: bool = False, quiet: bool = False) -> None:
     """Execute a specification."""
+    from .injectors import resolve_injector
     from .providers import load_providers
     from .token_engine import TokenEngine
-    from .injectors import resolve_injector
-    from .streams import prepare_stream
 
     # Load providers
     providers = load_providers(spec, context)
@@ -264,7 +263,7 @@ def _execute_spec(spec, context, verbose: bool = False, quiet: bool = False) -> 
 
         # Display result based on verbosity
         if not quiet:
-            console.print(f"\n[bold]Execution completed[/bold]")
+            console.print("\n[bold]Execution completed[/bold]")
             console.print(f"Exit code: {result.exit_code}")
             if verbose:
                 console.print(f"Duration: {result.duration_s:.2f}s")
@@ -278,13 +277,11 @@ def _execute_spec(spec, context, verbose: bool = False, quiet: bool = False) -> 
 
         # Clean up temporary files
         for file_path in build.files:
-            try:
+            with contextlib.suppress(Exception):
                 file_path.unlink(missing_ok=True)
-            except Exception:
-                pass
 
 
-def _display_explanation(spec, report, verbose: bool = False, quiet: bool = False) -> None:
+def _display_explanation(spec, report) -> None:
     """Display detailed explanation of a specification."""
     # Providers table
     providers_table = Table(title="Configuration Providers")
@@ -332,11 +329,11 @@ def _display_explanation(spec, report, verbose: bool = False, quiet: bool = Fals
     console.print(injectors_table)
 
     # Final invocation
-    console.print(f"\n[bold]Final Command:[/bold]")
+    console.print("\n[bold]Final Command:[/bold]")
     console.print(f"Working directory: {spec.target.working_dir}")
     console.print(f"Command: {' '.join(report.build.argv)}")
     console.print(f"Environment variables: {len(report.build.env)}")
 
 
 if __name__ == "__main__":
-    app() 
+    app()

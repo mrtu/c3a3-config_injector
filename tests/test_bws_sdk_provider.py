@@ -1,21 +1,20 @@
 """Tests for the Bitwarden Secrets (BWS) provider SDK implementation."""
 
 import os
-from pathlib import Path
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from config_injector.models import Spec, Provider, Target
 from config_injector.core import build_runtime_context
-from config_injector.providers import BwsProvider, create_provider
+from config_injector.models import Provider, Spec, Target
+from config_injector.providers import BwsProvider
 
 
 def test_bws_sdk_provider_import_error():
     """Test BWS provider fallback when bitwarden-sdk import fails."""
     # Clean up any existing BWS environment variables
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_'):
+        if key.startswith("BWS_"):
             del os.environ[key]
 
     # Set environment variable before building context
@@ -39,11 +38,11 @@ def test_bws_sdk_provider_import_error():
     )
 
     # Create a runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Mock the BitwardenClient and ClientSettings to be None (as if import failed)
-    with patch('config_injector.providers.BitwardenClient', None), \
-         patch('config_injector.providers.ClientSettings', None):
+    with patch("config_injector.providers.BitwardenClient", None), \
+         patch("config_injector.providers.ClientSettings", None):
         # Create and load the BWS provider
         provider_config = spec.configuration_providers[0]
         provider = BwsProvider(provider_config)
@@ -56,7 +55,7 @@ def test_bws_sdk_provider_import_error():
 
     # Clean up environment variables after test
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_'):
+        if key.startswith("BWS_"):
             del os.environ[key]
 
 
@@ -64,7 +63,7 @@ def test_bws_sdk_provider_success():
     """Test BWS provider with SDK implementation."""
     # Clean up any existing BWS environment variables
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_'):
+        if key.startswith("BWS_"):
             del os.environ[key]
 
     # Create mock objects
@@ -106,11 +105,11 @@ def test_bws_sdk_provider_success():
 
     # Create a runtime context with environment variables containing secret IDs
     os.environ["BWS_SECRET_ID"] = "12345678-1234-1234-1234-123456789012"
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Patch the module-level imports with our mocks
-    with patch('config_injector.providers.BitwardenClient', mock_bitwarden_client), \
-         patch('config_injector.providers.ClientSettings', mock_client_settings):
+    with patch("config_injector.providers.BitwardenClient", mock_bitwarden_client), \
+         patch("config_injector.providers.ClientSettings", mock_client_settings):
         # Create and load the BWS provider
         provider_config = spec.configuration_providers[0]
         provider = BwsProvider(provider_config)
@@ -127,7 +126,7 @@ def test_bws_sdk_provider_success():
 
     # Clean up environment variables after test
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_'):
+        if key.startswith("BWS_"):
             del os.environ[key]
 
 
@@ -135,7 +134,7 @@ def test_bws_sdk_provider_auth_failure():
     """Test BWS provider with SDK implementation when authentication fails."""
     # Clean up any existing BWS environment variables
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_'):
+        if key.startswith("BWS_"):
             del os.environ[key]
 
     # Create mock objects
@@ -172,11 +171,11 @@ def test_bws_sdk_provider_auth_failure():
     os.environ["BWS_API_KEY"] = "test-api-key"
 
     # Create a runtime context
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Patch the module-level imports with our mocks
-    with patch('config_injector.providers.BitwardenClient', mock_bitwarden_client), \
-         patch('config_injector.providers.ClientSettings', mock_client_settings):
+    with patch("config_injector.providers.BitwardenClient", mock_bitwarden_client), \
+         patch("config_injector.providers.ClientSettings", mock_client_settings):
         # Create and load the BWS provider
         provider_config = spec.configuration_providers[0]
         provider = BwsProvider(provider_config)
@@ -194,7 +193,7 @@ def test_bws_sdk_provider_auth_failure():
 
     # Clean up environment variables after test
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_'):
+        if key.startswith("BWS_"):
             del os.environ[key]
 
 
@@ -202,7 +201,7 @@ def test_bws_sdk_provider_secret_fetch_error():
     """Test BWS provider with SDK implementation when fetching a secret fails."""
     # Clean up any existing BWS environment variables
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_'):
+        if key.startswith("BWS_"):
             del os.environ[key]
 
     # Create mock objects
@@ -242,11 +241,11 @@ def test_bws_sdk_provider_secret_fetch_error():
 
     # Create a runtime context with environment variables containing secret IDs
     os.environ["BWS_SECRET_ID"] = "12345678-1234-1234-1234-123456789012"
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Patch the module-level imports with our mocks
-    with patch('config_injector.providers.BitwardenClient', mock_bitwarden_client), \
-         patch('config_injector.providers.ClientSettings', mock_client_settings):
+    with patch("config_injector.providers.BitwardenClient", mock_bitwarden_client), \
+         patch("config_injector.providers.ClientSettings", mock_client_settings):
         # Create and load the BWS provider
         provider_config = spec.configuration_providers[0]
         provider = BwsProvider(provider_config)
@@ -263,7 +262,7 @@ def test_bws_sdk_provider_secret_fetch_error():
 
     # Clean up environment variables after test
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_'):
+        if key.startswith("BWS_"):
             del os.environ[key]
 
 
@@ -271,7 +270,7 @@ def test_bws_sdk_provider_with_filter_chain():
     """Test BWS provider with SDK implementation and filter chain."""
     # Clean up any existing BWS environment variables
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_'):
+        if key.startswith("BWS_"):
             del os.environ[key]
 
     # Create mock objects
@@ -328,11 +327,11 @@ def test_bws_sdk_provider_with_filter_chain():
     # Create a runtime context with environment variables containing secret IDs
     os.environ["BWS_SECRET_ID_1"] = "12345678-1234-1234-1234-123456789012"
     os.environ["BWS_SECRET_ID_2"] = "87654321-4321-4321-4321-210987654321"
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Patch the module-level imports with our mocks
-    with patch('config_injector.providers.BitwardenClient', mock_bitwarden_client), \
-         patch('config_injector.providers.ClientSettings', mock_client_settings):
+    with patch("config_injector.providers.BitwardenClient", mock_bitwarden_client), \
+         patch("config_injector.providers.ClientSettings", mock_client_settings):
         # Create and load the BWS provider
         provider_config = spec.configuration_providers[0]
         provider = BwsProvider(provider_config)
@@ -352,7 +351,7 @@ def test_bws_sdk_provider_with_filter_chain():
 
     # Clean up environment variables after test
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_'):
+        if key.startswith("BWS_"):
             del os.environ[key]
 
 
@@ -360,7 +359,7 @@ def test_bws_sdk_provider_token_expansion():
     """Test BWS provider with SDK implementation and token expansion."""
     # Clean up any existing BWS environment variables
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_'):
+        if key.startswith("BWS_"):
             del os.environ[key]
 
     # Create mock objects
@@ -415,11 +414,11 @@ def test_bws_sdk_provider_token_expansion():
 
     # Create a runtime context with environment variables containing secret IDs
     os.environ["BWS_SECRET_ID"] = "12345678-1234-1234-1234-123456789012"
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Patch the module-level imports with our mocks
-    with patch('config_injector.providers.BitwardenClient', mock_bitwarden_client), \
-         patch('config_injector.providers.ClientSettings', mock_client_settings):
+    with patch("config_injector.providers.BitwardenClient", mock_bitwarden_client), \
+         patch("config_injector.providers.ClientSettings", mock_client_settings):
         # Create and load the BWS provider
         provider_config = spec.configuration_providers[0]
         provider = BwsProvider(provider_config)
@@ -439,7 +438,7 @@ def test_bws_sdk_provider_token_expansion():
 
     # Clean up environment variables after test
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_'):
+        if key.startswith("BWS_"):
             del os.environ[key]
 
 

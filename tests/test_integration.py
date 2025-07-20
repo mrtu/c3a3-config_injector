@@ -6,22 +6,23 @@ covering dry-run mode, live run mode, and file/stdin injectors.
 
 import os
 import tempfile
-import json
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-import yaml
 
-from config_injector.models import Spec, Provider, Injector, Target, Stream, FilterRule
 from config_injector.core import (
-    load_spec, build_runtime_context, dry_run, execute,
-    build_env_and_argv
+    build_env_and_argv,
+    build_runtime_context,
+    dry_run,
+    execute,
+    load_spec,
 )
-from config_injector.providers import load_providers
 from config_injector.injectors import resolve_injector
-from config_injector.token_engine import TokenEngine
+from config_injector.models import FilterRule, Injector, Provider, Spec, Target
+from config_injector.providers import load_providers
 from config_injector.streams import StreamWriter
+from config_injector.token_engine import TokenEngine
 
 
 class TestDryRunIntegration:
@@ -30,7 +31,7 @@ class TestDryRunIntegration:
     def test_dry_run_with_multiple_providers_and_injectors(self):
         """Test dry-run with complex spec including multiple providers and injectors."""
         # Create a temporary dotenv file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
             f.write("DB_HOST=localhost\n")
             f.write("DB_PORT=5432\n")
             f.write("API_KEY=secret123\n")
@@ -92,7 +93,7 @@ class TestDryRunIntegration:
             )
 
             # Build runtime context
-            context = build_runtime_context(spec)
+            context = build_runtime_context()
 
             # Perform dry run
             report = dry_run(spec, context)
@@ -124,7 +125,7 @@ class TestDryRunIntegration:
 
             # Verify sensitive data is masked
             api_key_injection = next(
-                inj for inj in report.json_summary["injections"] 
+                inj for inj in report.json_summary["injections"]
                 if inj["name"] == "api_key"
             )
             assert api_key_injection["sensitive"] is True
@@ -177,7 +178,7 @@ class TestDryRunIntegration:
 
         # Test with DEBUG=true
         with patch.dict(os.environ, {"DEBUG": "true"}, clear=False):
-            context = build_runtime_context(spec)
+            context = build_runtime_context()
             report = dry_run(spec, context)
 
             # Should include debug flag
@@ -187,7 +188,7 @@ class TestDryRunIntegration:
 
         # Test with PRODUCTION=true
         with patch.dict(os.environ, {"PRODUCTION": "true", "DEBUG": "false"}, clear=False):
-            context = build_runtime_context(spec)
+            context = build_runtime_context()
             report = dry_run(spec, context)
 
             # Should include production flag
@@ -226,7 +227,7 @@ class TestLiveRunIntegration:
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)
@@ -279,7 +280,7 @@ class TestLiveRunIntegration:
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers
         providers = load_providers(spec, context)
@@ -344,13 +345,13 @@ logging:
         )
 
         # Test dry-run mode
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         report = dry_run(spec, context)
 
         # Verify dry-run shows file injection plan
         assert "config_file" in [inj["name"] for inj in report.json_summary["injections"]]
         config_injection = next(
-            inj for inj in report.json_summary["injections"] 
+            inj for inj in report.json_summary["injections"]
             if inj["name"] == "config_file"
         )
         assert config_injection["kind"] == "file"
@@ -410,7 +411,7 @@ logging:
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers and resolve injectors
         providers = load_providers(spec, context)
@@ -468,13 +469,13 @@ class TestStdinInjectorIntegration:
         )
 
         # Test dry-run mode
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         report = dry_run(spec, context)
 
         # Verify dry-run shows stdin injection plan
         assert "input_data" in [inj["name"] for inj in report.json_summary["injections"]]
         stdin_injection = next(
-            inj for inj in report.json_summary["injections"] 
+            inj for inj in report.json_summary["injections"]
             if inj["name"] == "input_data"
         )
         assert stdin_injection["kind"] == "stdin_fragment"
@@ -531,7 +532,7 @@ class TestStdinInjectorIntegration:
         )
 
         # Build runtime context
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
 
         # Load providers and resolve injectors
         providers = load_providers(spec, context)
@@ -577,12 +578,12 @@ class TestStdinInjectorIntegration:
         )
 
         # Test dry-run mode with sensitive data
-        context = build_runtime_context(spec)
+        context = build_runtime_context()
         report = dry_run(spec, context)
 
         # Verify sensitive data is masked in dry-run
         stdin_injection = next(
-            inj for inj in report.json_summary["injections"] 
+            inj for inj in report.json_summary["injections"]
             if inj["name"] == "secret_input"
         )
         assert stdin_injection["sensitive"] is True
@@ -596,7 +597,7 @@ class TestComplexIntegrationScenarios:
     def test_full_pipeline_with_all_injector_types(self):
         """Test a complex spec with all injector types working together."""
         # Create a temporary dotenv file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
             f.write("DB_HOST=localhost\n")
             f.write("DB_PORT=5432\n")
             f.write("API_SECRET=secret123\n")
@@ -660,7 +661,7 @@ class TestComplexIntegrationScenarios:
             )
 
             # Test dry-run first
-            context = build_runtime_context(spec)
+            context = build_runtime_context()
             report = dry_run(spec, context)
 
             # Verify all injectors are planned
@@ -673,7 +674,7 @@ class TestComplexIntegrationScenarios:
 
             # Verify sensitive data is masked
             api_secret_injection = next(
-                inj for inj in report.json_summary["injections"] 
+                inj for inj in report.json_summary["injections"]
                 if inj["name"] == "api_secret"
             )
             assert api_secret_injection["sensitive"] is True
@@ -690,7 +691,7 @@ class TestComplexIntegrationScenarios:
 
             # Verify file was created
             config_file_injector = next(
-                inj for inj in resolved_injectors 
+                inj for inj in resolved_injectors
                 if inj.name == "config_file"
             )
             assert len(config_file_injector.files_created) == 1
@@ -755,7 +756,7 @@ target:
 """
 
         # Create temporary YAML file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(spec_content)
             yaml_path = Path(f.name)
 
@@ -770,7 +771,7 @@ target:
             assert spec.target.working_dir == "/tmp"
 
             # Test dry-run
-            context = build_runtime_context(spec)
+            context = build_runtime_context()
             report = dry_run(spec, context)
 
             # Verify dry-run works with loaded spec

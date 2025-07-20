@@ -1,12 +1,11 @@
 """Tests for the Bitwarden Secrets (BWS) provider."""
 
 import os
-from pathlib import Path
 
 import pytest
 
-from config_injector.models import Spec, Provider, Target
 from config_injector.core import build_runtime_context
+from config_injector.models import Provider, Spec, Target
 from config_injector.providers import BwsProvider, create_provider
 
 
@@ -29,7 +28,7 @@ def test_bws_provider_loading():
     """Test loading secrets from the BWS provider stub."""
     # Clean up any existing BWS environment variables
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_') or 'SECRET' in key.upper() or 'BITWARDEN' in key.upper():
+        if key.startswith("BWS_") or "SECRET" in key.upper() or "BITWARDEN" in key.upper():
             del os.environ[key]
 
     # Create a spec with a BWS provider
@@ -51,7 +50,7 @@ def test_bws_provider_loading():
     os.environ["BWS_API_KEY"] = "test-api-key"
     os.environ["DATABASE_SECRET"] = "test-db-secret"
 
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Create and load the BWS provider
     provider_config = spec.configuration_providers[0]
@@ -66,7 +65,7 @@ def test_bws_provider_loading():
 
     # Clean up environment variables after test
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_') or 'SECRET' in key.upper() or 'BITWARDEN' in key.upper():
+        if key.startswith("BWS_") or "SECRET" in key.upper() or "BITWARDEN" in key.upper():
             del os.environ[key]
 
 
@@ -74,7 +73,7 @@ def test_bws_provider_with_filter_chain():
     """Test BWS provider with filter chain."""
     # Clean up any existing BWS environment variables
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_') or 'SECRET' in key.upper() or 'BITWARDEN' in key.upper():
+        if key.startswith("BWS_") or "SECRET" in key.upper() or "BITWARDEN" in key.upper():
             del os.environ[key]
 
     # Create a spec with a BWS provider that has a filter chain
@@ -99,7 +98,7 @@ def test_bws_provider_with_filter_chain():
     os.environ["BWS_API_KEY"] = "test-api-key"
     os.environ["DATABASE_SECRET"] = "test-db-secret"
 
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
 
     # Create and load the BWS provider
     provider_config = spec.configuration_providers[0]
@@ -113,7 +112,7 @@ def test_bws_provider_with_filter_chain():
 
     # Clean up environment variables after test
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_') or 'SECRET' in key.upper() or 'BITWARDEN' in key.upper():
+        if key.startswith("BWS_") or "SECRET" in key.upper() or "BITWARDEN" in key.upper():
             del os.environ[key]
 
 
@@ -123,7 +122,7 @@ def test_bws_provider_in_load_providers():
 
     # Clean up any existing BWS environment variables
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_') or 'SECRET' in key.upper() or 'BITWARDEN' in key.upper():
+        if key.startswith("BWS_") or "SECRET" in key.upper() or "BITWARDEN" in key.upper():
             del os.environ[key]
 
     # Create a spec with a BWS provider
@@ -144,7 +143,7 @@ def test_bws_provider_in_load_providers():
     # Create a runtime context with environment variables
     os.environ["BWS_API_KEY"] = "test-api-key"
 
-    context = build_runtime_context(spec)
+    context = build_runtime_context()
     providers = load_providers(spec, context)
 
     # Verify that the BWS provider was loaded
@@ -154,7 +153,7 @@ def test_bws_provider_in_load_providers():
 
     # Clean up environment variables after test
     for key in list(os.environ.keys()):
-        if key.startswith('BWS_') or 'SECRET' in key.upper() or 'BITWARDEN' in key.upper():
+        if key.startswith("BWS_") or "SECRET" in key.upper() or "BITWARDEN" in key.upper():
             del os.environ[key]
 
 

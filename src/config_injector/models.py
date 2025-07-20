@@ -3,49 +3,48 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Literal, Optional, Union
-from pathlib import Path
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field, AnyUrl, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class FilterRule(BaseModel):
     """Filter rule for provider key filtering."""
 
-    include: Optional[str] = None
-    exclude: Optional[str] = None
+    include: str | None = None
+    exclude: str | None = None
 
-    @field_validator('include', 'exclude')
+    @field_validator("include", "exclude")
     @classmethod
-    def _compile_regex(cls, v: Optional[str]) -> Optional[str]:
+    def _compile_regex(cls, v: str | None) -> str | None:
         """Validate and compile regex patterns."""
         if v is None:
             return v
         try:
             re.compile(v)
         except re.error as e:
-            raise ValueError(f"Invalid regex pattern '{v}': {e}")
+            raise ValueError(f"Invalid regex pattern '{v}': {e}") from e
         return v
 
 
 class Provider(BaseModel):
     """Configuration provider definition."""
 
-    type: Literal['env', 'dotenv', 'bws', 'custom']
+    type: Literal["env", "dotenv", "bws", "custom"]
     id: str
-    name: Optional[str] = None
+    name: str | None = None
     enabled: bool = True
     passthrough: bool = False
     mask: bool = False
-    hierarchical: Optional[bool] = None
-    filename: Optional[str] = None
-    path: Optional[str] = None
-    precedence: Optional[str] = None  # e.g., deep-first
-    vault_url: Optional[str] = None
-    access_token: Optional[str] = None
-    filter_chain: List[Union[FilterRule, Dict[str, str], str]] = Field(default_factory=list)
+    hierarchical: bool | None = None
+    filename: str | None = None
+    path: str | None = None
+    precedence: str | None = None  # e.g., deep-first
+    vault_url: str | None = None
+    access_token: str | None = None
+    filter_chain: list[FilterRule | dict[str, str] | str] = Field(default_factory=list)
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def _normalize_filter_chain(self):
         """Convert filter_chain items to FilterRule objects."""
         normalized_chain = []
@@ -67,36 +66,36 @@ class Injector(BaseModel):
     """Configuration injector definition."""
 
     name: str
-    kind: Literal['env_var', 'named', 'positional', 'file', 'stdin_fragment']
-    aliases: List[str] = Field(default_factory=list)
-    sources: List[Any] = Field(default_factory=list)  # strings after interpolation
-    precedence: str = 'first_non_empty'
+    kind: Literal["env_var", "named", "positional", "file", "stdin_fragment"]
+    aliases: list[str] = Field(default_factory=list)
+    sources: list[Any] = Field(default_factory=list)  # strings after interpolation
+    precedence: str = "first_non_empty"
     required: bool = False
-    default: Optional[Any] = None
-    type: Optional[Literal['string', 'int', 'bool', 'path', 'list', 'json']] = None
+    default: Any | None = None
+    type: Literal["string", "int", "bool", "path", "list", "json"] | None = None
     sensitive: bool = False
-    when: Optional[str] = None
-    order: Optional[int] = None
-    connector: Optional[Literal['=', 'space', 'repeat']] = '='
-    delimiter: str = ','  # Delimiter for list type coercion
+    when: str | None = None
+    order: int | None = None
+    connector: Literal["=", "space", "repeat"] | None = "="
+    delimiter: str = ","  # Delimiter for list type coercion
 
 
 class Stream(BaseModel):
     """Output stream configuration."""
 
-    path: Optional[str] = None
+    path: str | None = None
     tee_terminal: bool = False
     append: bool = False
-    format: Literal['text', 'json'] = 'text'
+    format: Literal["text", "json"] = "text"
 
 
 class Target(BaseModel):
     """Target execution configuration."""
 
     working_dir: str
-    shell: Optional[Literal['bash', 'sh', 'powershell', 'none']] = 'none'
-    command: List[str]
-    stdin: Optional[str] = None
+    shell: Literal["bash", "sh", "powershell", "none"] | None = "none"
+    command: list[str]
+    stdin: str | None = None
     stdout: Stream = Field(default_factory=Stream)
     stderr: Stream = Field(default_factory=Stream)
 
@@ -106,10 +105,10 @@ class Spec(BaseModel):
 
     version: str
     env_passthrough: bool = False
-    default_logging_format: Optional[Literal['text', 'json']] = None
+    default_logging_format: Literal["text", "json"] | None = None
     mask_defaults: bool = False
-    configuration_providers: List[Provider]
-    configuration_injectors: List[Injector]
+    configuration_providers: list[Provider]
+    configuration_injectors: list[Injector]
     target: Target
-    profiles: Optional[Dict[str, Any]] = None    # extension
-    validation: Optional[Dict[str, Any]] = None  # extension 
+    profiles: dict[str, Any] | None = None    # extension
+    validation: dict[str, Any] | None = None  # extension

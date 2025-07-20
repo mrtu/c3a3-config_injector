@@ -1,16 +1,16 @@
 """Tests for the semantic validation module."""
 
-import pytest
-from pathlib import Path
 
-from config_injector.models import Spec, Provider, Injector, Target
+import pytest
+
+from config_injector.models import Injector, Provider, Spec, Target
 from config_injector.validation import (
     semantic_validate,
-    validate_unique_provider_ids,
-    validate_unique_injector_names,
     validate_alias_syntax,
     validate_positional_ordering,
     validate_strict_rules,
+    validate_unique_injector_names,
+    validate_unique_provider_ids,
 )
 
 
@@ -38,11 +38,11 @@ def test_validate_unique_provider_ids():
         configuration_injectors=[],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_unique_provider_ids(spec)
     assert len(errors) == 1
     assert "Duplicate provider ID: 'env'" in errors[0]
-    
+
     # Create a spec with unique provider IDs
     spec = Spec(
         version="0.1",
@@ -65,7 +65,7 @@ def test_validate_unique_provider_ids():
         configuration_injectors=[],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_unique_provider_ids(spec)
     assert len(errors) == 0
 
@@ -92,11 +92,11 @@ def test_validate_unique_injector_names():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_unique_injector_names(spec)
     assert len(errors) == 1
     assert "Duplicate injector name: 'test_var'" in errors[0]
-    
+
     # Create a spec with unique injector names
     spec = Spec(
         version="0.1",
@@ -117,7 +117,7 @@ def test_validate_unique_injector_names():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_unique_injector_names(spec)
     assert len(errors) == 0
 
@@ -144,12 +144,12 @@ def test_validate_alias_syntax():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_alias_syntax(spec)
     assert len(errors) == 2
     assert "Invalid env_var alias 'invalid-alias'" in errors[0]
     assert "Invalid env_var alias '1INVALID'" in errors[1]
-    
+
     # Create a spec with invalid named aliases
     spec = Spec(
         version="0.1",
@@ -176,13 +176,13 @@ def test_validate_alias_syntax():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_alias_syntax(spec)
     assert len(errors) == 3
     assert "Invalid named alias 'test'" in errors[0]
     assert "Invalid named alias '--t'" in errors[1]
     assert "Invalid named alias '-too-long'" in errors[2]
-    
+
     # Create a spec with valid aliases
     spec = Spec(
         version="0.1",
@@ -203,7 +203,7 @@ def test_validate_alias_syntax():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_alias_syntax(spec)
     assert len(errors) == 0
 
@@ -225,11 +225,11 @@ def test_validate_positional_ordering():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_positional_ordering(spec)
     assert len(errors) == 1
     assert "Positional injector 'pos1' must have an order value" in errors[0]
-    
+
     # Create a spec with duplicate order values
     spec = Spec(
         version="0.1",
@@ -252,11 +252,11 @@ def test_validate_positional_ordering():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_positional_ordering(spec)
     assert len(errors) == 1
     assert "Positional injectors must have unique order values" in errors[0]
-    
+
     # Create a spec with non-sequential order values
     spec = Spec(
         version="0.1",
@@ -279,11 +279,11 @@ def test_validate_positional_ordering():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_positional_ordering(spec)
     assert len(errors) == 1
     assert "Positional injectors must have sequential order values" in errors[0]
-    
+
     # Create a spec with valid positional ordering
     spec = Spec(
         version="0.1",
@@ -306,7 +306,7 @@ def test_validate_positional_ordering():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_positional_ordering(spec)
     assert len(errors) == 0
 
@@ -333,12 +333,12 @@ def test_validate_strict_rules():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_strict_rules(spec)
     assert len(errors) == 2
     assert "Injector 'test_var' should have at least one alias" in errors[0]
     assert "Injector 'test_arg' should have at least one source" in errors[1]
-    
+
     # Create a spec that passes strict validation
     spec = Spec(
         version="0.1",
@@ -359,7 +359,7 @@ def test_validate_strict_rules():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = validate_strict_rules(spec)
     assert len(errors) == 0
 
@@ -402,15 +402,15 @@ def test_semantic_validate():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     # Test without strict mode
     errors = semantic_validate(spec, strict=False)
     assert len(errors) == 3  # 1 for duplicate ID, 1 for invalid alias, 1 for missing order
-    
+
     # Test with strict mode
     errors = semantic_validate(spec, strict=True)
     assert len(errors) >= 4  # Additional errors from strict validation
-    
+
     # Create a valid spec
     spec = Spec(
         version="0.1",
@@ -446,10 +446,10 @@ def test_semantic_validate():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     errors = semantic_validate(spec, strict=False)
     assert len(errors) == 0
-    
+
     errors = semantic_validate(spec, strict=True)
     assert len(errors) == 0
 

@@ -1,17 +1,15 @@
 """Tests for the streams module."""
 
 import io
-import os
-import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
+from config_injector.core import RuntimeContext
 from config_injector.models import Stream
 from config_injector.streams import StreamConfig, StreamWriter, prepare_stream
-from config_injector.core import RuntimeContext
 from config_injector.token_engine import TokenEngine
 
 
@@ -99,7 +97,7 @@ def test_prepare_stream_with_complex_tokens():
 
         # Extract just the filename and check the PID_SEQ_UUID pattern
         filename = Path(path_str).name  # Get just the filename part
-        filename_without_ext = filename.rsplit('.', 1)[0]  # Remove .log extension
+        filename_without_ext = filename.rsplit(".", 1)[0]  # Remove .log extension
         filename_parts = filename_without_ext.split("_")
         assert len(filename_parts) == 3  # PID, SEQ, UUID
 
@@ -229,8 +227,8 @@ def test_stream_writer_tee_terminal():
     writer = StreamWriter(stdout_config=config)
 
     # Patch sys.stdout.buffer to use our mock buffer
-    with patch('sys.stdout.buffer.write', mock_buffer.write), \
-         patch('sys.stdout.buffer.flush'):
+    with patch("sys.stdout.buffer.write", mock_buffer.write), \
+         patch("sys.stdout.buffer.flush"):
         # Write some data
         writer.write_stdout(b"Hello, world!\n")
 

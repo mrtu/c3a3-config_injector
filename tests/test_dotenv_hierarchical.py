@@ -1,13 +1,11 @@
 import os
 import tempfile
 from pathlib import Path
-import shutil
 
-import pytest
-
-from config_injector.models import Provider, Spec, Target
 from config_injector.core import build_runtime_context
+from config_injector.models import Provider, Spec, Target
 from config_injector.providers import DotenvProvider
+
 
 def write_env_file(path: Path, content: str):
     path.write_text(content)
@@ -47,9 +45,7 @@ def test_hierarchical_dotenv_deep_first():
             precedence="deep-first",
             filter_chain=[],
         )
-        spec = minimal_spec(str(level2))
         context = build_runtime_context(
-            spec=spec,
             env=os.environ.copy(),
         )
         # Set working_dir in context.extra
@@ -87,9 +83,7 @@ def test_hierarchical_dotenv_shallow_first():
             precedence="shallow-first",
             filter_chain=[],
         )
-        spec = minimal_spec(str(level2))
         context = build_runtime_context(
-            spec=spec,
             env=os.environ.copy(),
         )
         # Set working_dir in context.extra
@@ -100,4 +94,4 @@ def test_hierarchical_dotenv_shallow_first():
         assert merged["FOO"] == "from_root"
         assert merged["BAR"] == "from_root"
         assert merged["BAZ"] == "from_level1"
-        assert merged["QUX"] == "from_level2" 
+        assert merged["QUX"] == "from_level2"

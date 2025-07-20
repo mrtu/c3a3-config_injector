@@ -12,11 +12,11 @@ This module provides a proper expression parser that supports:
 
 from __future__ import annotations
 
-import re
 import operator
-from typing import Any, List, Optional, Union
+import re
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 
 class TokenType(Enum):
@@ -50,31 +50,31 @@ class ExpressionLexer:
 
     # Operators and their precedence
     OPERATORS = {
-        '==': ('eq', 2),
-        '!=': ('ne', 2),
-        '<': ('lt', 2),
-        '>': ('gt', 2),
-        '<=': ('le', 2),
-        '>=': ('ge', 2),
-        '=~': ('match', 2),  # regex match
-        '!~': ('not_match', 2),  # regex not match
+        "==": ("eq", 2),
+        "!=": ("ne", 2),
+        "<": ("lt", 2),
+        ">": ("gt", 2),
+        "<=": ("le", 2),
+        ">=": ("ge", 2),
+        "=~": ("match", 2),  # regex match
+        "!~": ("not_match", 2),  # regex not match
     }
 
     LOGICAL_OPERATORS = {
-        'AND': ('and', 1),
-        'OR': ('or', 0),
-        'NOT': ('not', 3),
-        '&&': ('and', 1),
-        '||': ('or', 0),
-        '!': ('not', 3),
+        "AND": ("and", 1),
+        "OR": ("or", 0),
+        "NOT": ("not", 3),
+        "&&": ("and", 1),
+        "||": ("or", 0),
+        "!": ("not", 3),
     }
 
     def __init__(self, expression: str):
         self.expression = expression
         self.position = 0
-        self.tokens: List[Token] = []
+        self.tokens: list[Token] = []
 
-    def tokenize(self) -> List[Token]:
+    def tokenize(self) -> list[Token]:
         """Tokenize the expression into a list of tokens."""
         self.tokens = []
         self.position = 0
@@ -91,13 +91,13 @@ class ExpressionLexer:
             if char in ('"', "'"):
                 self._read_string(char)
             # Numbers
-            elif char.isdigit() or (char == '-' and self._peek().isdigit()):
+            elif char.isdigit() or (char == "-" and self._peek().isdigit()):
                 self._read_number()
             # Parentheses
-            elif char == '(':
+            elif char == "(":
                 self.tokens.append(Token(TokenType.LPAREN, char, self.position))
                 self.position += 1
-            elif char == ')':
+            elif char == ")":
                 self.tokens.append(Token(TokenType.RPAREN, char, self.position))
                 self.position += 1
             # Multi-character operators (including logical operators)
@@ -107,15 +107,15 @@ class ExpressionLexer:
             elif self._check_multi_char_logical_operator():
                 pass  # handled in _check_multi_char_logical_operator
             # Single character operators
-            elif char in '!<>=':
+            elif char in "!<>=":
                 self._read_operator()
             # Identifiers and keywords
-            elif char.isalpha() or char == '_':
+            elif char.isalpha() or char == "_":
                 self._read_identifier()
             else:
                 raise ExpressionError(f"Unexpected character '{char}' at position {self.position}")
 
-        self.tokens.append(Token(TokenType.EOF, '', self.position))
+        self.tokens.append(Token(TokenType.EOF, "", self.position))
         return self.tokens
 
     def _skip_whitespace(self):
@@ -126,13 +126,13 @@ class ExpressionLexer:
     def _peek(self, offset: int = 1) -> str:
         """Peek at the next character without advancing position."""
         pos = self.position + offset
-        return self.expression[pos] if pos < len(self.expression) else ''
+        return self.expression[pos] if pos < len(self.expression) else ""
 
     def _read_string(self, quote_char: str):
         """Read a string literal."""
         start_pos = self.position
         self.position += 1  # Skip opening quote
-        value = ''
+        value = ""
 
         while self.position < len(self.expression):
             char = self.expression[self.position]
@@ -140,7 +140,7 @@ class ExpressionLexer:
                 self.position += 1  # Skip closing quote
                 self.tokens.append(Token(TokenType.STRING, value, start_pos))
                 return
-            elif char == '\\' and self._peek() in (quote_char, '\\'):
+            elif char == "\\" and self._peek() in (quote_char, "\\"):
                 # Handle escaped quotes and backslashes
                 self.position += 1
                 value += self.expression[self.position]
@@ -153,17 +153,17 @@ class ExpressionLexer:
     def _read_number(self):
         """Read a numeric literal."""
         start_pos = self.position
-        value = ''
+        value = ""
 
         # Handle negative numbers
-        if self.expression[self.position] == '-':
-            value += '-'
+        if self.expression[self.position] == "-":
+            value += "-"
             self.position += 1
 
         # Read digits and decimal point
         while self.position < len(self.expression):
             char = self.expression[self.position]
-            if char.isdigit() or char == '.':
+            if char.isdigit() or char == ".":
                 value += char
                 self.position += 1
             else:
@@ -185,7 +185,7 @@ class ExpressionLexer:
         # Check for && and ||
         if self.position + 1 < len(self.expression):
             two_char = self.expression[self.position:self.position + 2]
-            if two_char in ('&&', '||'):
+            if two_char in ("&&", "||"):
                 self.tokens.append(Token(TokenType.LOGICAL, two_char, self.position))
                 self.position += 2
                 return True
@@ -197,29 +197,29 @@ class ExpressionLexer:
         char = self.expression[self.position]
 
         # Check for compound operators
-        if char == '=' and self._peek() == '=':
-            self.tokens.append(Token(TokenType.OPERATOR, '==', start_pos))
+        if char == "=" and self._peek() == "=":
+            self.tokens.append(Token(TokenType.OPERATOR, "==", start_pos))
             self.position += 2
-        elif char == '!' and self._peek() == '=':
-            self.tokens.append(Token(TokenType.OPERATOR, '!=', start_pos))
+        elif char == "!" and self._peek() == "=":
+            self.tokens.append(Token(TokenType.OPERATOR, "!=", start_pos))
             self.position += 2
-        elif char == '<' and self._peek() == '=':
-            self.tokens.append(Token(TokenType.OPERATOR, '<=', start_pos))
+        elif char == "<" and self._peek() == "=":
+            self.tokens.append(Token(TokenType.OPERATOR, "<=", start_pos))
             self.position += 2
-        elif char == '>' and self._peek() == '=':
-            self.tokens.append(Token(TokenType.OPERATOR, '>=', start_pos))
+        elif char == ">" and self._peek() == "=":
+            self.tokens.append(Token(TokenType.OPERATOR, ">=", start_pos))
             self.position += 2
-        elif char == '!' and self._peek() == '~':
-            self.tokens.append(Token(TokenType.OPERATOR, '!~', start_pos))
+        elif char == "!" and self._peek() == "~":
+            self.tokens.append(Token(TokenType.OPERATOR, "!~", start_pos))
             self.position += 2
-        elif char == '=' and self._peek() == '~':
-            self.tokens.append(Token(TokenType.OPERATOR, '=~', start_pos))
+        elif char == "=" and self._peek() == "~":
+            self.tokens.append(Token(TokenType.OPERATOR, "=~", start_pos))
             self.position += 2
-        elif char in '<>':
+        elif char in "<>":
             self.tokens.append(Token(TokenType.OPERATOR, char, start_pos))
             self.position += 1
-        elif char == '!':
-            self.tokens.append(Token(TokenType.LOGICAL, '!', start_pos))
+        elif char == "!":
+            self.tokens.append(Token(TokenType.LOGICAL, "!", start_pos))
             self.position += 1
         else:
             raise ExpressionError(f"Unknown operator '{char}' at position {start_pos}")
@@ -227,11 +227,11 @@ class ExpressionLexer:
     def _read_identifier(self):
         """Read an identifier or keyword."""
         start_pos = self.position
-        value = ''
+        value = ""
 
         while self.position < len(self.expression):
             char = self.expression[self.position]
-            if char.isalnum() or char == '_':
+            if char.isalnum() or char == "_":
                 value += char
                 self.position += 1
             else:
@@ -247,12 +247,12 @@ class ExpressionLexer:
 class ExpressionParser:
     """Parser for conditional expressions using recursive descent parsing."""
 
-    def __init__(self, tokens: List[Token]):
+    def __init__(self, tokens: list[Token]):
         self.tokens = tokens
         self.position = 0
-        self.current_token = self.tokens[0] if tokens else Token(TokenType.EOF, '', 0)
+        self.current_token = self.tokens[0] if tokens else Token(TokenType.EOF, "", 0)
 
-    def parse(self) -> 'ExpressionNode':
+    def parse(self) -> ExpressionNode:
         """Parse the tokens into an abstract syntax tree."""
         expr = self._parse_or_expression()
         if self.current_token.type != TokenType.EOF:
@@ -265,11 +265,11 @@ class ExpressionParser:
             self.position += 1
             self.current_token = self.tokens[self.position]
 
-    def _parse_or_expression(self) -> 'ExpressionNode':
+    def _parse_or_expression(self) -> ExpressionNode:
         """Parse OR expressions (lowest precedence)."""
         left = self._parse_and_expression()
 
-        while self.current_token.type == TokenType.LOGICAL and self.current_token.value in ('OR', '||'):
+        while self.current_token.type == TokenType.LOGICAL and self.current_token.value in ("OR", "||"):
             op = self.current_token.value
             self._advance()
             right = self._parse_and_expression()
@@ -277,11 +277,11 @@ class ExpressionParser:
 
         return left
 
-    def _parse_and_expression(self) -> 'ExpressionNode':
+    def _parse_and_expression(self) -> ExpressionNode:
         """Parse AND expressions."""
         left = self._parse_not_expression()
 
-        while self.current_token.type == TokenType.LOGICAL and self.current_token.value in ('AND', '&&'):
+        while self.current_token.type == TokenType.LOGICAL and self.current_token.value in ("AND", "&&"):
             op = self.current_token.value
             self._advance()
             right = self._parse_not_expression()
@@ -289,9 +289,9 @@ class ExpressionParser:
 
         return left
 
-    def _parse_not_expression(self) -> 'ExpressionNode':
+    def _parse_not_expression(self) -> ExpressionNode:
         """Parse NOT expressions (highest precedence for logical operators)."""
-        if self.current_token.type == TokenType.LOGICAL and self.current_token.value in ('NOT', '!'):
+        if self.current_token.type == TokenType.LOGICAL and self.current_token.value in ("NOT", "!"):
             op = self.current_token.value
             self._advance()
             operand = self._parse_not_expression()
@@ -299,7 +299,7 @@ class ExpressionParser:
 
         return self._parse_comparison_expression()
 
-    def _parse_comparison_expression(self) -> 'ExpressionNode':
+    def _parse_comparison_expression(self) -> ExpressionNode:
         """Parse comparison expressions."""
         left = self._parse_primary_expression()
 
@@ -311,7 +311,7 @@ class ExpressionParser:
 
         return left
 
-    def _parse_primary_expression(self) -> 'ExpressionNode':
+    def _parse_primary_expression(self) -> ExpressionNode:
         """Parse primary expressions (literals, identifiers, parentheses)."""
         token = self.current_token
 
@@ -329,8 +329,8 @@ class ExpressionParser:
         elif token.type == TokenType.IDENTIFIER:
             self._advance()
             # Handle boolean literals
-            if token.value.lower() in ('true', 'false'):
-                return LiteralNode(token.value.lower() == 'true')
+            if token.value.lower() in ("true", "false"):
+                return LiteralNode(token.value.lower() == "true")
             return IdentifierNode(token.value)
         elif token.type == TokenType.LPAREN:
             self._advance()
@@ -358,7 +358,7 @@ class LiteralNode(ExpressionNode):
     def __init__(self, value: Any):
         self.value = value
 
-    def evaluate(self, context: dict) -> Any:
+    def evaluate(self, _context: dict) -> Any:
         return self.value
 
 
@@ -386,12 +386,12 @@ class BinaryOpNode(ExpressionNode):
         left_val = self.left.evaluate(context)
 
         # Short-circuit evaluation for logical operators
-        if self.operator in ('OR', '||'):
+        if self.operator in ("OR", "||"):
             if self._is_truthy(left_val):
                 return True
             right_val = self.right.evaluate(context)
             return self._is_truthy(right_val)
-        elif self.operator in ('AND', '&&'):
+        elif self.operator in ("AND", "&&"):
             if not self._is_truthy(left_val):
                 return False
             right_val = self.right.evaluate(context)
@@ -400,21 +400,21 @@ class BinaryOpNode(ExpressionNode):
         # Regular binary operations
         right_val = self.right.evaluate(context)
 
-        if self.operator == '==':
+        if self.operator == "==":
             return self._compare_values(left_val, right_val, operator.eq)
-        elif self.operator == '!=':
+        elif self.operator == "!=":
             return self._compare_values(left_val, right_val, operator.ne)
-        elif self.operator == '<':
+        elif self.operator == "<":
             return self._compare_values(left_val, right_val, operator.lt)
-        elif self.operator == '>':
+        elif self.operator == ">":
             return self._compare_values(left_val, right_val, operator.gt)
-        elif self.operator == '<=':
+        elif self.operator == "<=":
             return self._compare_values(left_val, right_val, operator.le)
-        elif self.operator == '>=':
+        elif self.operator == ">=":
             return self._compare_values(left_val, right_val, operator.ge)
-        elif self.operator == '=~':
+        elif self.operator == "=~":
             return self._regex_match(left_val, right_val)
-        elif self.operator == '!~':
+        elif self.operator == "!~":
             return not self._regex_match(left_val, right_val)
         else:
             raise ExpressionError(f"Unknown operator: {self.operator}")
@@ -424,8 +424,8 @@ class BinaryOpNode(ExpressionNode):
         if isinstance(value, bool):
             return value
         elif isinstance(value, str):
-            return value.lower() in ('true', '1', 'yes', 'on') and value != ''
-        elif isinstance(value, (int, float)):
+            return value.lower() in ("true", "1", "yes", "on") and value != ""
+        elif isinstance(value, int | float):
             return value != 0
         else:
             return bool(value)
@@ -435,11 +435,11 @@ class BinaryOpNode(ExpressionNode):
         # Handle boolean/string comparisons specially
         if isinstance(left, bool) and isinstance(right, str):
             # Convert boolean to string for comparison
-            left_str = 'true' if left else 'false'
+            left_str = "true" if left else "false"
             return op(left_str, right)
         elif isinstance(left, str) and isinstance(right, bool):
             # Convert boolean to string for comparison
-            right_str = 'true' if right else 'false'
+            right_str = "true" if right else "false"
             return op(left, right_str)
 
         # Try numeric comparison first
@@ -453,13 +453,13 @@ class BinaryOpNode(ExpressionNode):
                 except ValueError:
                     # Fall back to string comparison
                     pass
-            elif isinstance(left, (int, float)) and isinstance(right, str):
+            elif isinstance(left, int | float) and isinstance(right, str):
                 try:
                     right_num = float(right)
                     return op(left, right_num)
                 except ValueError:
                     pass
-            elif isinstance(left, str) and isinstance(right, (int, float)):
+            elif isinstance(left, str) and isinstance(right, int | float):
                 try:
                     left_num = float(left)
                     return op(left_num, right)
@@ -479,7 +479,7 @@ class BinaryOpNode(ExpressionNode):
             pattern_str = str(pattern)
             return bool(re.search(pattern_str, text_str))
         except re.error as e:
-            raise ExpressionError(f"Invalid regex pattern '{pattern}': {e}")
+            raise ExpressionError(f"Invalid regex pattern '{pattern}': {e}") from e
 
 
 class UnaryOpNode(ExpressionNode):
@@ -492,7 +492,7 @@ class UnaryOpNode(ExpressionNode):
     def evaluate(self, context: dict) -> Any:
         operand_val = self.operand.evaluate(context)
 
-        if self.operator in ('NOT', '!'):
+        if self.operator in ("NOT", "!"):
             return not self._is_truthy(operand_val)
         else:
             raise ExpressionError(f"Unknown unary operator: {self.operator}")
@@ -502,8 +502,8 @@ class UnaryOpNode(ExpressionNode):
         if isinstance(value, bool):
             return value
         elif isinstance(value, str):
-            return value.lower() in ('true', '1', 'yes', 'on') and value != ''
-        elif isinstance(value, (int, float)):
+            return value.lower() in ("true", "1", "yes", "on") and value != ""
+        elif isinstance(value, int | float):
             return value != 0
         else:
             return bool(value)
@@ -531,10 +531,10 @@ def evaluate_expression(expression: str, context: dict) -> bool:
         if isinstance(result, bool):
             return result
         elif isinstance(result, str):
-            return result.lower() in ('true', '1', 'yes', 'on') and result != ''
-        elif isinstance(result, (int, float)):
+            return result.lower() in ("true", "1", "yes", "on") and result != ""
+        elif isinstance(result, int | float):
             return result != 0
         else:
             return bool(result)
     except Exception as e:
-        raise ExpressionError(f"Expression evaluation failed: {e}")
+        raise ExpressionError(f"Expression evaluation failed: {e}") from e

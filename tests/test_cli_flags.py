@@ -1,9 +1,10 @@
 """Tests for CLI flags functionality."""
 
-import pytest
-import tempfile
 import os
+import tempfile
 from pathlib import Path
+
+import pytest
 from typer.testing import CliRunner
 
 from config_injector.cli import app
@@ -43,7 +44,7 @@ target:
   command: ["echo", "test"]
 """
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
         f.write(spec_content)
         f.flush()
         yield Path(f.name)
@@ -82,7 +83,7 @@ profiles:
     mask_defaults: true
 """
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
         f.write(spec_content)
         f.flush()
         yield Path(f.name)

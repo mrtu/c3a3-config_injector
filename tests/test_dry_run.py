@@ -1,10 +1,10 @@
 """Tests for the dry-run functionality."""
 
-import pytest
-from pathlib import Path
 
-from config_injector.models import Spec, Provider, Injector, Target
+import pytest
+
 from config_injector.core import build_runtime_context, dry_run
+from config_injector.models import Injector, Provider, Spec, Target
 
 
 def test_dry_run_text_summary():
@@ -31,13 +31,13 @@ def test_dry_run_text_summary():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     # Build runtime context
-    context = build_runtime_context(spec)
-    
+    context = build_runtime_context()
+
     # Perform dry run
     report = dry_run(spec, context)
-    
+
     # Verify text summary
     assert isinstance(report.text_summary, str)
     assert "Providers Loaded" in report.text_summary
@@ -69,35 +69,35 @@ def test_dry_run_json_summary():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     # Build runtime context
-    context = build_runtime_context(spec)
-    
+    context = build_runtime_context()
+
     # Perform dry run
     report = dry_run(spec, context)
-    
+
     # Verify JSON summary
     assert isinstance(report.json_summary, dict)
-    
+
     # Check structure of JSON summary
     assert "spec" in report.json_summary
     assert "providers" in report.json_summary
     assert "injections" in report.json_summary
     assert "build" in report.json_summary
-    
+
     # Check spec section
     assert report.json_summary["spec"]["version"] == "0.1"
     assert report.json_summary["spec"]["working_dir"] == "/tmp"
     assert report.json_summary["spec"]["command"] == ["echo", "test"]
-    
+
     # Check providers section
     assert "env" in report.json_summary["providers"]
-    
+
     # Check injections section
     assert len(report.json_summary["injections"]) == 1
     assert report.json_summary["injections"][0]["name"] == "test_var"
     assert report.json_summary["injections"][0]["kind"] == "env_var"
-    
+
     # Check build section
     assert "env_keys" in report.json_summary["build"]
     assert "argv" in report.json_summary["build"]
@@ -129,13 +129,13 @@ def test_dry_run_sensitive_values():
         ],
         target=Target(working_dir="/tmp", command=["echo", "test"])
     )
-    
+
     # Build runtime context
-    context = build_runtime_context(spec)
-    
+    context = build_runtime_context()
+
     # Perform dry run
     report = dry_run(spec, context)
-    
+
     # Verify sensitive values are masked in JSON summary
     assert report.json_summary["injections"][0]["sensitive"] is True
     assert report.json_summary["injections"][0]["value"] != "secret123"
