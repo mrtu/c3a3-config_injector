@@ -24,10 +24,10 @@ def test_env_passthrough_overlay():
                 name="test_env_var",
                 kind="env_var",
                 aliases=["TEST_VAR"],
-                sources=["injector_value"]
+                sources=["injector_value"],
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context with the custom environment
@@ -57,10 +57,10 @@ def test_env_passthrough_disabled():
                 name="test_env_var",
                 kind="env_var",
                 aliases=["TEST_VAR"],
-                sources=["injector_value"]
+                sources=["injector_value"],
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context with the custom environment

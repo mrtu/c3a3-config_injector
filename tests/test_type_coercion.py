@@ -78,7 +78,7 @@ class TestTypeCoercion:
             aliases=["TEST_LIST"],
             sources=["item1|item2|item3"],
             type="list",
-            delimiter="|"
+            delimiter="|",
         )
 
         value, errors = _coerce_type("item1|item2|item3", "list", injector)
@@ -94,7 +94,7 @@ class TestTypeCoercion:
             aliases=["TEST_LIST"],
             sources=["item1;item2;item3"],
             type="list",
-            delimiter=";"
+            delimiter=";",
         )
 
         value, errors = _coerce_type("item1;item2;item3", "list", injector)
@@ -110,7 +110,7 @@ class TestTypeCoercion:
             aliases=["TEST_LIST"],
             sources=["item1 item2 item3"],
             type="list",
-            delimiter=" "
+            delimiter=" ",
         )
 
         value, errors = _coerce_type("item1 item2 item3", "list", injector)
@@ -126,7 +126,7 @@ class TestTypeCoercion:
             aliases=["TEST_LIST"],
             sources=["item1:item2:item3"],
             type="list",
-            delimiter=":"
+            delimiter=":",
         )
 
         value, errors = _coerce_type("item1:item2:item3", "list", injector)
@@ -142,7 +142,7 @@ class TestTypeCoercion:
             aliases=["TEST_LIST"],
             sources=["item1 | item2 | item3"],
             type="list",
-            delimiter="|"
+            delimiter="|",
         )
 
         value, errors = _coerce_type("item1 | item2 | item3", "list", injector)
@@ -256,10 +256,10 @@ class TestPathTypeCoercionIntegration:
                         kind="env_var",
                         aliases=["CONFIG_PATH"],
                         sources=[temp_path],
-                        type="path"
+                        type="path",
                     )
                 ],
-                target=Target(working_dir="/tmp", command=["echo", "test"])
+                target=Target(working_dir="/tmp", command=["echo", "test"]),
             )
 
             # Build runtime context
@@ -272,7 +272,9 @@ class TestPathTypeCoercionIntegration:
             token_engine = TokenEngine(context, providers)
 
             # Resolve injector
-            resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+            resolved = resolve_injector(
+                spec.configuration_injectors[0], context, providers, token_engine
+            )
 
             # Verify
             assert resolved.value is not None
@@ -298,10 +300,10 @@ class TestPathTypeCoercionIntegration:
                     kind="env_var",
                     aliases=["CONFIG_PATH"],
                     sources=[nonexistent_path],
-                    type="path"
+                    type="path",
                 )
             ],
-            target=Target(working_dir="/tmp", command=["echo", "test"])
+            target=Target(working_dir="/tmp", command=["echo", "test"]),
         )
 
         # Build runtime context
@@ -314,7 +316,9 @@ class TestPathTypeCoercionIntegration:
         token_engine = TokenEngine(context, providers)
 
         # Resolve injector
-        resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+        resolved = resolve_injector(
+            spec.configuration_injectors[0], context, providers, token_engine
+        )
 
         # Verify
         assert resolved.value is None
@@ -339,10 +343,10 @@ class TestPathTypeCoercionIntegration:
                         aliases=["--config"],
                         sources=[temp_path],
                         type="path",
-                        connector="="
+                        connector="=",
                     )
                 ],
-                target=Target(working_dir="/tmp", command=["echo", "test"])
+                target=Target(working_dir="/tmp", command=["echo", "test"]),
             )
 
             # Build runtime context
@@ -355,7 +359,9 @@ class TestPathTypeCoercionIntegration:
             token_engine = TokenEngine(context, providers)
 
             # Resolve injector
-            resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine, spec)
+            resolved = resolve_injector(
+                spec.configuration_injectors[0], context, providers, token_engine, spec
+            )
 
             # Verify
             assert resolved.value is not None
@@ -386,10 +392,10 @@ class TestPathTypeCoercionIntegration:
                         aliases=["--workdir"],
                         sources=[temp_dir],
                         type="path",
-                        connector="="
+                        connector="=",
                     )
                 ],
-                target=Target(working_dir="/tmp", command=["echo", "test"])
+                target=Target(working_dir="/tmp", command=["echo", "test"]),
             )
 
             # Build runtime context
@@ -402,7 +408,9 @@ class TestPathTypeCoercionIntegration:
             token_engine = TokenEngine(context, providers)
 
             # Resolve injector
-            resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+            resolved = resolve_injector(
+                spec.configuration_injectors[0], context, providers, token_engine
+            )
 
             # Verify
             assert resolved.value is not None
@@ -429,10 +437,10 @@ class TestListDelimiterIntegration:
                     aliases=["TAGS"],
                     sources=["tag1|tag2|tag3"],
                     type="list",
-                    delimiter="|"
+                    delimiter="|",
                 )
             ],
-            target=Target(working_dir="/tmp", command=["echo", "test"])
+            target=Target(working_dir="/tmp", command=["echo", "test"]),
         )
 
         # Build runtime context
@@ -445,7 +453,9 @@ class TestListDelimiterIntegration:
         token_engine = TokenEngine(context, providers)
 
         # Resolve injector
-        resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+        resolved = resolve_injector(
+            spec.configuration_injectors[0], context, providers, token_engine
+        )
 
         # Verify
         assert resolved.value == '["tag1", "tag2", "tag3"]'
@@ -466,10 +476,10 @@ class TestListDelimiterIntegration:
                     sources=["file1.txt;file2.txt;file3.txt"],
                     type="list",
                     delimiter=";",
-                    connector="="
+                    connector="=",
                 )
             ],
-            target=Target(working_dir="/tmp", command=["echo", "test"])
+            target=Target(working_dir="/tmp", command=["echo", "test"]),
         )
 
         # Build runtime context
@@ -482,13 +492,18 @@ class TestListDelimiterIntegration:
         token_engine = TokenEngine(context, providers)
 
         # Resolve injector
-        resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+        resolved = resolve_injector(
+            spec.configuration_injectors[0], context, providers, token_engine
+        )
 
         # Verify
         assert resolved.value == '["file1.txt", "file2.txt", "file3.txt"]'
         assert resolved.errors == []
         assert len(resolved.argv_segments) == 1
-        assert resolved.argv_segments[0] == '--files=["file1.txt", "file2.txt", "file3.txt"]'
+        assert (
+            resolved.argv_segments[0]
+            == '--files=["file1.txt", "file2.txt", "file3.txt"]'
+        )
 
     def test_injector_with_space_delimiter_positional(self):
         """Test positional injector with space delimiter for list type."""
@@ -501,10 +516,10 @@ class TestListDelimiterIntegration:
                     kind="positional",
                     sources=["arg1 arg2 arg3"],
                     type="list",
-                    delimiter=" "
+                    delimiter=" ",
                 )
             ],
-            target=Target(working_dir="/tmp", command=["echo", "test"])
+            target=Target(working_dir="/tmp", command=["echo", "test"]),
         )
 
         # Build runtime context
@@ -517,7 +532,9 @@ class TestListDelimiterIntegration:
         token_engine = TokenEngine(context, providers)
 
         # Resolve injector
-        resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+        resolved = resolve_injector(
+            spec.configuration_injectors[0], context, providers, token_engine
+        )
 
         # Verify
         assert resolved.value == '["arg1", "arg2", "arg3"]'
@@ -538,10 +555,10 @@ class TestListDelimiterIntegration:
                     sources=["path1:path2:path3"],
                     type="list",
                     delimiter=":",
-                    connector="="
+                    connector="=",
                 )
             ],
-            target=Target(working_dir="/tmp", command=["echo", "test"])
+            target=Target(working_dir="/tmp", command=["echo", "test"]),
         )
 
         # Build runtime context
@@ -554,7 +571,9 @@ class TestListDelimiterIntegration:
         token_engine = TokenEngine(context, providers)
 
         # Resolve injector
-        resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine, spec)
+        resolved = resolve_injector(
+            spec.configuration_injectors[0], context, providers, token_engine, spec
+        )
 
         # Verify
         assert resolved.value == '["path1", "path2", "path3"]'
@@ -578,11 +597,11 @@ class TestListDelimiterIntegration:
                     kind="env_var",
                     aliases=["ITEMS"],
                     sources=["item1,item2,item3"],
-                    type="list"
+                    type="list",
                     # No delimiter specified, should default to comma
                 )
             ],
-            target=Target(working_dir="/tmp", command=["echo", "test"])
+            target=Target(working_dir="/tmp", command=["echo", "test"]),
         )
 
         # Build runtime context
@@ -595,7 +614,9 @@ class TestListDelimiterIntegration:
         token_engine = TokenEngine(context, providers)
 
         # Resolve injector
-        resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+        resolved = resolve_injector(
+            spec.configuration_injectors[0], context, providers, token_engine
+        )
 
         # Verify
         assert resolved.value == '["item1", "item2", "item3"]'
@@ -615,10 +636,10 @@ class TestListDelimiterIntegration:
                     aliases=["COMPLEX_LIST"],
                     sources=["item with spaces :: another item :: third item"],
                     type="list",
-                    delimiter=" :: "
+                    delimiter=" :: ",
                 )
             ],
-            target=Target(working_dir="/tmp", command=["echo", "test"])
+            target=Target(working_dir="/tmp", command=["echo", "test"]),
         )
 
         # Build runtime context
@@ -631,13 +652,18 @@ class TestListDelimiterIntegration:
         token_engine = TokenEngine(context, providers)
 
         # Resolve injector
-        resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+        resolved = resolve_injector(
+            spec.configuration_injectors[0], context, providers, token_engine
+        )
 
         # Verify
         assert resolved.value == '["item with spaces", "another item", "third item"]'
         assert resolved.errors == []
         assert "COMPLEX_LIST" in resolved.env_updates
-        assert resolved.env_updates["COMPLEX_LIST"] == '["item with spaces", "another item", "third item"]'
+        assert (
+            resolved.env_updates["COMPLEX_LIST"]
+            == '["item with spaces", "another item", "third item"]'
+        )
 
 
 if __name__ == "__main__":

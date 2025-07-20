@@ -48,7 +48,9 @@ def resolve_injector(
     """Resolve an injector to its final value and injection plan."""
 
     # Check conditional injection
-    if injector.when and not _evaluate_condition(injector.when, context, providers, token_engine):
+    if injector.when and not _evaluate_condition(
+        injector.when, context, providers, token_engine
+    ):
         return ResolvedInjector(
             injector=injector,
             value=None,
@@ -83,6 +85,7 @@ def resolve_injector(
 
         elif injector.kind == "named":
             if injector.aliases:
+                applied_aliases = injector.aliases
                 alias = injector.aliases[0]  # Use first alias
                 if injector.connector == "=":
                     argv_segments.append(f"{alias}={value}")
@@ -208,11 +211,15 @@ def _evaluate_condition(
 
     except ExpressionError as e:
         # Log the error but fall back to the old simple evaluation for backward compatibility
-        print(f"Warning: Expression evaluation failed, falling back to simple evaluation: {e}")
+        print(
+            f"Warning: Expression evaluation failed, falling back to simple evaluation: {e}"
+        )
         return _evaluate_condition_simple(expanded_condition)
     except Exception as e:
         # Unexpected error, fall back to simple evaluation
-        print(f"Warning: Unexpected error in expression evaluation, falling back to simple evaluation: {e}")
+        print(
+            f"Warning: Unexpected error in expression evaluation, falling back to simple evaluation: {e}"
+        )
         return _evaluate_condition_simple(expanded_condition)
 
 
@@ -231,7 +238,12 @@ def _evaluate_condition_simple(expanded_condition: str) -> bool:
         right = right.strip()
 
         # Remove quotes from string literals
-        if right.startswith("'") and right.endswith("'") or right.startswith('"') and right.endswith('"'):
+        if (
+            right.startswith("'")
+            and right.endswith("'")
+            or right.startswith('"')
+            and right.endswith('"')
+        ):
             right = right[1:-1]
 
         return left == right
@@ -245,9 +257,11 @@ def _evaluate_condition_simple(expanded_condition: str) -> bool:
     return bool(expanded_condition)
 
 
-def _coerce_type(value: str, target_type: str, injector: Injector | None = None) -> tuple[str | None, list[str]]:
+def _coerce_type(
+    value: str, target_type: str, injector: Injector | None = None
+) -> tuple[str | None, list[str]]:
     """Coerce a string value to the target type."""
-    errors = []
+    errors: list[str] = []
 
     try:
         if target_type == "string":
@@ -303,14 +317,13 @@ def _create_temp_file(content: str, injector: Injector) -> Path:
     """Create a temporary file with the given content."""
     # Create temporary file
     suffix = ".tmp"
-    if injector.type == "json" or (injector.type == "path" and (content.startswith("{") or content.startswith("["))):
+    if injector.type == "json" or (
+        injector.type == "path" and (content.startswith("{") or content.startswith("["))
+    ):
         suffix = ".json"
 
     with tempfile.NamedTemporaryFile(
-        mode="w",
-        suffix=suffix,
-        delete=False,
-        encoding="utf-8"
+        mode="w", suffix=suffix, delete=False, encoding="utf-8"
     ) as temp_file:
         temp_file.write(content)
         temp_file.flush()

@@ -25,10 +25,10 @@ def test_file_cleanup_after_execution():
                 kind="file",
                 aliases=["--config"],
                 sources=["test_content"],
-                connector="="
+                connector="=",
             )
         ],
-        target=Target(working_dir="/tmp", command=["cat", "${--config}"])
+        target=Target(working_dir="/tmp", command=["cat", "${--config}"]),
     )
 
     # Build runtime context
@@ -53,6 +53,7 @@ def test_file_cleanup_after_execution():
 
     # Create a build result
     from config_injector.core import build_env_and_argv
+
     build = build_env_and_argv(spec, resolved_injectors, context)
 
     # Create a stream writer
@@ -73,17 +74,13 @@ def test_stdin_fragment_cleanup_after_execution():
         configuration_providers=[],
         configuration_injectors=[
             Injector(
-                name="stdin_fragment1",
-                kind="stdin_fragment",
-                sources=["fragment1"]
+                name="stdin_fragment1", kind="stdin_fragment", sources=["fragment1"]
             ),
             Injector(
-                name="stdin_fragment2",
-                kind="stdin_fragment",
-                sources=["fragment2"]
-            )
+                name="stdin_fragment2", kind="stdin_fragment", sources=["fragment2"]
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["cat"])
+        target=Target(working_dir="/tmp", command=["cat"]),
     )
 
     # Build runtime context
@@ -103,6 +100,7 @@ def test_stdin_fragment_cleanup_after_execution():
 
     # Create a build result
     from config_injector.core import build_env_and_argv
+
     build = build_env_and_argv(spec, resolved_injectors, context)
 
     # Verify that stdin_data is not None
@@ -129,7 +127,7 @@ def test_execution_result_stdout_path_capture():
             version="0.1",
             configuration_providers=[],
             configuration_injectors=[],
-            target=Target(working_dir="/tmp", command=["echo", "Hello, stdout!"])
+            target=Target(working_dir="/tmp", command=["echo", "Hello, stdout!"]),
         )
 
         # Build runtime context
@@ -143,14 +141,12 @@ def test_execution_result_stdout_path_capture():
 
         # Create a build result
         from config_injector.core import build_env_and_argv
+
         build = build_env_and_argv(spec, [], context)
 
         # Create stream writer with stdout configuration
         stdout_config = StreamConfig(
-            path=stdout_path,
-            tee_terminal=False,
-            append=False,
-            format="text"
+            path=stdout_path, tee_terminal=False, append=False, format="text"
         )
         stream_writer = StreamWriter(stdout_config=stdout_config)
 
@@ -181,7 +177,9 @@ def test_execution_result_stderr_path_capture():
             version="0.1",
             configuration_providers=[],
             configuration_injectors=[],
-            target=Target(working_dir="/tmp", command=["sh", "-c", "echo 'Hello, stderr!' >&2"])
+            target=Target(
+                working_dir="/tmp", command=["sh", "-c", "echo 'Hello, stderr!' >&2"]
+            ),
         )
 
         # Build runtime context
@@ -195,14 +193,12 @@ def test_execution_result_stderr_path_capture():
 
         # Create a build result
         from config_injector.core import build_env_and_argv
+
         build = build_env_and_argv(spec, [], context)
 
         # Create stream writer with stderr configuration
         stderr_config = StreamConfig(
-            path=stderr_path,
-            tee_terminal=False,
-            append=False,
-            format="text"
+            path=stderr_path, tee_terminal=False, append=False, format="text"
         )
         stream_writer = StreamWriter(stderr_config=stderr_config)
 
@@ -234,7 +230,14 @@ def test_execution_result_both_stdout_stderr_paths():
             version="0.1",
             configuration_providers=[],
             configuration_injectors=[],
-            target=Target(working_dir="/tmp", command=["sh", "-c", "echo 'Hello, stdout!'; echo 'Hello, stderr!' >&2"])
+            target=Target(
+                working_dir="/tmp",
+                command=[
+                    "sh",
+                    "-c",
+                    "echo 'Hello, stdout!'; echo 'Hello, stderr!' >&2",
+                ],
+            ),
         )
 
         # Build runtime context
@@ -248,22 +251,19 @@ def test_execution_result_both_stdout_stderr_paths():
 
         # Create a build result
         from config_injector.core import build_env_and_argv
+
         build = build_env_and_argv(spec, [], context)
 
         # Create stream writer with both stdout and stderr configurations
         stdout_config = StreamConfig(
-            path=stdout_path,
-            tee_terminal=False,
-            append=False,
-            format="text"
+            path=stdout_path, tee_terminal=False, append=False, format="text"
         )
         stderr_config = StreamConfig(
-            path=stderr_path,
-            tee_terminal=False,
-            append=False,
-            format="text"
+            path=stderr_path, tee_terminal=False, append=False, format="text"
         )
-        stream_writer = StreamWriter(stdout_config=stdout_config, stderr_config=stderr_config)
+        stream_writer = StreamWriter(
+            stdout_config=stdout_config, stderr_config=stderr_config
+        )
 
         # Execute the process
         result = execute(spec, build, stream_writer, [], context)
@@ -293,7 +293,7 @@ def test_execution_result_no_stream_paths():
         version="0.1",
         configuration_providers=[],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "Hello, world!"])
+        target=Target(working_dir="/tmp", command=["echo", "Hello, world!"]),
     )
 
     # Build runtime context
@@ -307,6 +307,7 @@ def test_execution_result_no_stream_paths():
 
     # Create a build result
     from config_injector.core import build_env_and_argv
+
     build = build_env_and_argv(spec, [], context)
 
     # Create stream writer with no file configurations (default)
@@ -335,7 +336,14 @@ def test_execution_result_json_format_paths():
             version="0.1",
             configuration_providers=[],
             configuration_injectors=[],
-            target=Target(working_dir="/tmp", command=["sh", "-c", "echo 'Hello, stdout!'; echo 'Hello, stderr!' >&2"])
+            target=Target(
+                working_dir="/tmp",
+                command=[
+                    "sh",
+                    "-c",
+                    "echo 'Hello, stdout!'; echo 'Hello, stderr!' >&2",
+                ],
+            ),
         )
 
         # Build runtime context
@@ -349,22 +357,19 @@ def test_execution_result_json_format_paths():
 
         # Create a build result
         from config_injector.core import build_env_and_argv
+
         build = build_env_and_argv(spec, [], context)
 
         # Create stream writer with JSON format configurations
         stdout_config = StreamConfig(
-            path=stdout_path,
-            tee_terminal=False,
-            append=False,
-            format="json"
+            path=stdout_path, tee_terminal=False, append=False, format="json"
         )
         stderr_config = StreamConfig(
-            path=stderr_path,
-            tee_terminal=False,
-            append=False,
-            format="json"
+            path=stderr_path, tee_terminal=False, append=False, format="json"
         )
-        stream_writer = StreamWriter(stdout_config=stdout_config, stderr_config=stderr_config)
+        stream_writer = StreamWriter(
+            stdout_config=stdout_config, stderr_config=stderr_config
+        )
 
         # Execute the process
         result = execute(spec, build, stream_writer, [], context)

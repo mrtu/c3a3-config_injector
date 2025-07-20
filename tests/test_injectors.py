@@ -1,6 +1,5 @@
 """Tests for the Configuration Wrapping Framework injectors."""
 
-
 import pytest
 
 from config_injector.core import build_runtime_context, dry_run
@@ -21,10 +20,10 @@ def test_env_var_injector():
                 name="test_env_var",
                 kind="env_var",
                 aliases=["TEST_VAR"],
-                sources=["test_value"]
+                sources=["test_value"],
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -37,7 +36,9 @@ def test_env_var_injector():
     token_engine = TokenEngine(context, providers)
 
     # Resolve injector
-    resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+    resolved = resolve_injector(
+        spec.configuration_injectors[0], context, providers, token_engine
+    )
 
     # Verify
     assert resolved.value == "test_value"
@@ -61,10 +62,10 @@ def test_named_injector():
                 kind="named",
                 aliases=["--test"],
                 sources=["test_value"],
-                connector="="
+                connector="=",
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -77,11 +78,13 @@ def test_named_injector():
     token_engine = TokenEngine(context, providers)
 
     # Resolve injector
-    resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+    resolved = resolve_injector(
+        spec.configuration_injectors[0], context, providers, token_engine
+    )
 
     # Verify
     assert resolved.value == "test_value"
-    assert not resolved.applied_aliases
+    assert resolved.applied_aliases == ["--test"]
     assert resolved.argv_segments == ["--test=test_value"]
     assert not resolved.env_updates
     assert not resolved.files_created
@@ -96,13 +99,9 @@ def test_positional_injector():
         version="0.1",
         configuration_providers=[],
         configuration_injectors=[
-            Injector(
-                name="test_positional",
-                kind="positional",
-                sources=["test_value"]
-            )
+            Injector(name="test_positional", kind="positional", sources=["test_value"])
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -115,7 +114,9 @@ def test_positional_injector():
     token_engine = TokenEngine(context, providers)
 
     # Resolve injector
-    resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+    resolved = resolve_injector(
+        spec.configuration_injectors[0], context, providers, token_engine
+    )
 
     # Verify
     assert resolved.value == "test_value"
@@ -139,10 +140,10 @@ def test_file_injector():
                 kind="file",
                 aliases=["--config"],
                 sources=["test_content"],
-                connector="="
+                connector="=",
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -155,7 +156,9 @@ def test_file_injector():
     token_engine = TokenEngine(context, providers)
 
     # Resolve injector
-    resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+    resolved = resolve_injector(
+        spec.configuration_injectors[0], context, providers, token_engine
+    )
 
     # Verify
     assert resolved.value == "test_content"
@@ -179,17 +182,13 @@ def test_stdin_fragment_injector():
         configuration_providers=[],
         configuration_injectors=[
             Injector(
-                name="stdin_fragment1",
-                kind="stdin_fragment",
-                sources=["fragment1"]
+                name="stdin_fragment1", kind="stdin_fragment", sources=["fragment1"]
             ),
             Injector(
-                name="stdin_fragment2",
-                kind="stdin_fragment",
-                sources=["fragment2"]
-            )
+                name="stdin_fragment2", kind="stdin_fragment", sources=["fragment2"]
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["cat"])
+        target=Target(working_dir="/tmp", command=["cat"]),
     )
 
     # Build runtime context
@@ -231,16 +230,16 @@ def test_conditional_stdin_fragment_injector():
                 name="stdin_fragment1",
                 kind="stdin_fragment",
                 sources=["fragment1"],
-                when="true"
+                when="true",
             ),
             Injector(
                 name="stdin_fragment2",
                 kind="stdin_fragment",
                 sources=["fragment2"],
-                when="false"
-            )
+                when="false",
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["cat"])
+        target=Target(working_dir="/tmp", command=["cat"]),
     )
 
     # Build runtime context

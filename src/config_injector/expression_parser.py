@@ -16,11 +16,15 @@ import operator
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class TokenType(Enum):
     """Token types for expression parsing."""
+
     LITERAL = "LITERAL"
     STRING = "STRING"
     NUMBER = "NUMBER"
@@ -35,6 +39,7 @@ class TokenType(Enum):
 @dataclass
 class Token:
     """A token in the expression."""
+
     type: TokenType
     value: str
     position: int
@@ -42,6 +47,7 @@ class Token:
 
 class ExpressionError(Exception):
     """Exception raised for expression parsing or evaluation errors."""
+
     pass
 
 
@@ -100,27 +106,30 @@ class ExpressionLexer:
             elif char == ")":
                 self.tokens.append(Token(TokenType.RPAREN, char, self.position))
                 self.position += 1
-            # Multi-character operators (including logical operators)
-            elif self._check_multi_char_operator():
-                pass  # handled in _check_multi_char_operator
-            # Multi-character logical operators
-            elif self._check_multi_char_logical_operator():
-                pass  # handled in _check_multi_char_logical_operator
-            # Single character operators
-            elif char in "!<>=":
-                self._read_operator()
+            # Operators and identifiers
+            elif char in "<>=!~&|":
+                if (
+                    not self._check_multi_char_operator()
+                    and not self._check_multi_char_logical_operator()
+                ):
+                    self._read_operator()
             # Identifiers and keywords
             elif char.isalpha() or char == "_":
                 self._read_identifier()
             else:
-                raise ExpressionError(f"Unexpected character '{char}' at position {self.position}")
+                raise ExpressionError(
+                    f"Unexpected character '{char}' at position {self.position}"
+                )
 
         self.tokens.append(Token(TokenType.EOF, "", self.position))
         return self.tokens
 
-    def _skip_whitespace(self):
+    def _skip_whitespace(self) -> None:
         """Skip whitespace characters."""
-        while self.position < len(self.expression) and self.expression[self.position].isspace():
+        while (
+            self.position < len(self.expression)
+            and self.expression[self.position].isspace()
+        ):
             self.position += 1
 
     def _peek(self, offset: int = 1) -> str:
@@ -128,7 +137,7 @@ class ExpressionLexer:
         pos = self.position + offset
         return self.expression[pos] if pos < len(self.expression) else ""
 
-    def _read_string(self, quote_char: str):
+    def _read_string(self, quote_char: str) -> None:
         """Read a string literal."""
         start_pos = self.position
         self.position += 1  # Skip opening quote
@@ -148,9 +157,11 @@ class ExpressionLexer:
                 value += char
             self.position += 1
 
-        raise ExpressionError(f"Unterminated string literal starting at position {start_pos}")
+        raise ExpressionError(
+            f"Unterminated string literal starting at position {start_pos}"
+        )
 
-    def _read_number(self):
+    def _read_number(self) -> None:
         """Read a numeric literal."""
         start_pos = self.position
         value = ""
@@ -174,7 +185,7 @@ class ExpressionLexer:
     def _check_multi_char_operator(self) -> bool:
         """Check for multi-character operators."""
         for op in sorted(self.OPERATORS.keys(), key=len, reverse=True):
-            if self.expression[self.position:self.position + len(op)] == op:
+            if self.expression[self.position : self.position + len(op)] == op:
                 self.tokens.append(Token(TokenType.OPERATOR, op, self.position))
                 self.position += len(op)
                 return True
@@ -184,14 +195,14 @@ class ExpressionLexer:
         """Check for multi-character logical operators like && and ||."""
         # Check for && and ||
         if self.position + 1 < len(self.expression):
-            two_char = self.expression[self.position:self.position + 2]
+            two_char = self.expression[self.position : self.position + 2]
             if two_char in ("&&", "||"):
                 self.tokens.append(Token(TokenType.LOGICAL, two_char, self.position))
                 self.position += 2
                 return True
         return False
 
-    def _read_operator(self):
+    def _read_operator(self) -> None:
         """Read a single-character operator."""
         start_pos = self.position
         char = self.expression[self.position]
@@ -221,10 +232,16 @@ class ExpressionLexer:
         elif char == "!":
             self.tokens.append(Token(TokenType.LOGICAL, "!", start_pos))
             self.position += 1
+        elif char == "&" and self._peek() == "&":
+            self.tokens.append(Token(TokenType.LOGICAL, "&&", start_pos))
+            self.position += 2
+        elif char == "|" and self._peek() == "|":
+            self.tokens.append(Token(TokenType.LOGICAL, "||", start_pos))
+            self.position += 2
         else:
             raise ExpressionError(f"Unknown operator '{char}' at position {start_pos}")
 
-    def _read_identifier(self):
+    def _read_identifier(self) -> None:
         """Read an identifier or keyword."""
         start_pos = self.position
         value = ""
@@ -256,10 +273,12 @@ class ExpressionParser:
         """Parse the tokens into an abstract syntax tree."""
         expr = self._parse_or_expression()
         if self.current_token.type != TokenType.EOF:
-            raise ExpressionError(f"Unexpected token '{self.current_token.value}' at position {self.current_token.position}")
+            raise ExpressionError(
+                f"Unexpected token '{self.current_token.value}' at position {self.current_token.position}"
+            )
         return expr
 
-    def _advance(self):
+    def _advance(self) -> None:
         """Move to the next token."""
         if self.position < len(self.tokens) - 1:
             self.position += 1
@@ -269,7 +288,10 @@ class ExpressionParser:
         """Parse OR expressions (lowest precedence)."""
         left = self._parse_and_expression()
 
-        while self.current_token.type == TokenType.LOGICAL and self.current_token.value in ("OR", "||"):
+        while (
+            self.current_token.type == TokenType.LOGICAL
+            and self.current_token.value in ("OR", "||")
+        ):
             op = self.current_token.value
             self._advance()
             right = self._parse_and_expression()
@@ -281,7 +303,10 @@ class ExpressionParser:
         """Parse AND expressions."""
         left = self._parse_not_expression()
 
-        while self.current_token.type == TokenType.LOGICAL and self.current_token.value in ("AND", "&&"):
+        while (
+            self.current_token.type == TokenType.LOGICAL
+            and self.current_token.value in ("AND", "&&")
+        ):
             op = self.current_token.value
             self._advance()
             right = self._parse_not_expression()
@@ -291,7 +316,10 @@ class ExpressionParser:
 
     def _parse_not_expression(self) -> ExpressionNode:
         """Parse NOT expressions (highest precedence for logical operators)."""
-        if self.current_token.type == TokenType.LOGICAL and self.current_token.value in ("NOT", "!"):
+        if (
+            self.current_token.type == TokenType.LOGICAL
+            and self.current_token.value in ("NOT", "!")
+        ):
             op = self.current_token.value
             self._advance()
             operand = self._parse_not_expression()
@@ -322,7 +350,7 @@ class ExpressionParser:
             self._advance()
             # Try to parse as int first, then float
             try:
-                value = int(token.value)
+                value: int | float = int(token.value)
             except ValueError:
                 value = float(token.value)
             return LiteralNode(value)
@@ -336,18 +364,22 @@ class ExpressionParser:
             self._advance()
             expr = self._parse_or_expression()
             if self.current_token.type != TokenType.RPAREN:
-                raise ExpressionError(f"Expected ')' at position {self.current_token.position}")
+                raise ExpressionError(
+                    f"Expected ')' at position {self.current_token.position}"
+                )
             self._advance()
             return expr
         else:
-            raise ExpressionError(f"Unexpected token '{token.value}' at position {token.position}")
+            raise ExpressionError(
+                f"Unexpected token '{token.value}' at position {token.position}"
+            )
 
 
 # AST Node classes
 class ExpressionNode:
     """Base class for expression AST nodes."""
 
-    def evaluate(self, context: dict) -> Any:
+    def evaluate(self, context: dict[str, Any]) -> Any:
         """Evaluate the expression node with the given context."""
         raise NotImplementedError
 
@@ -358,7 +390,7 @@ class LiteralNode(ExpressionNode):
     def __init__(self, value: Any):
         self.value = value
 
-    def evaluate(self, _context: dict) -> Any:
+    def evaluate(self, _context: dict[str, Any]) -> Any:
         return self.value
 
 
@@ -368,7 +400,7 @@ class IdentifierNode(ExpressionNode):
     def __init__(self, name: str):
         self.name = name
 
-    def evaluate(self, context: dict) -> Any:
+    def evaluate(self, context: dict[str, Any]) -> Any:
         if self.name not in context:
             raise ExpressionError(f"Undefined variable: {self.name}")
         return context[self.name]
@@ -382,7 +414,7 @@ class BinaryOpNode(ExpressionNode):
         self.operator = operator
         self.right = right
 
-    def evaluate(self, context: dict) -> Any:
+    def evaluate(self, context: dict[str, Any]) -> Any:
         left_val = self.left.evaluate(context)
 
         # Short-circuit evaluation for logical operators
@@ -430,7 +462,9 @@ class BinaryOpNode(ExpressionNode):
         else:
             return bool(value)
 
-    def _compare_values(self, left: Any, right: Any, op) -> bool:
+    def _compare_values(
+        self, left: Any, right: Any, op: Callable[[Any, Any], bool]
+    ) -> bool:
         """Compare two values with type coercion."""
         # Handle boolean/string comparisons specially
         if isinstance(left, bool) and isinstance(right, str):
@@ -489,7 +523,7 @@ class UnaryOpNode(ExpressionNode):
         self.operator = operator
         self.operand = operand
 
-    def evaluate(self, context: dict) -> Any:
+    def evaluate(self, context: dict[str, Any]) -> Any:
         operand_val = self.operand.evaluate(context)
 
         if self.operator in ("NOT", "!"):
@@ -521,7 +555,7 @@ def parse_expression(expression: str) -> ExpressionNode:
     return parser.parse()
 
 
-def evaluate_expression(expression: str, context: dict) -> bool:
+def evaluate_expression(expression: str, context: dict[str, Any]) -> bool:
     """Parse and evaluate a conditional expression."""
     try:
         ast = parse_expression(expression)

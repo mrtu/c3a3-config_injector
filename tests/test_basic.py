@@ -21,7 +21,7 @@ def test_load_spec():
                 "id": "env",
                 "name": "Host Environment",
                 "passthrough": True,
-                "filter_chain": []
+                "filter_chain": [],
             }
         ],
         "configuration_injectors": [
@@ -29,17 +29,15 @@ def test_load_spec():
                 "name": "test_var",
                 "kind": "env_var",
                 "aliases": ["TEST_VAR"],
-                "sources": ["${ENV:TEST_SOURCE}"]
+                "sources": ["${ENV:TEST_SOURCE}"],
             }
         ],
-        "target": {
-            "working_dir": "/tmp",
-            "command": ["echo", "test"]
-        }
+        "target": {"working_dir": "/tmp", "command": ["echo", "test"]},
     }
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
         import yaml
+
         yaml.dump(spec_data, f)
         spec_path = Path(f.name)
 
@@ -76,7 +74,7 @@ def test_token_expansion():
         now=None,  # Will be set by build_runtime_context
         pid=12345,
         home="/test/home",
-        seq=1
+        seq=1,
     )
 
     token_engine = TokenEngine(context)
@@ -106,11 +104,11 @@ def test_provider_loading():
                 id="env",
                 name="Test Environment",
                 passthrough=True,
-                filter_chain=[]
+                filter_chain=[],
             )
         ],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     context = build_runtime_context()

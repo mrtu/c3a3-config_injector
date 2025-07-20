@@ -30,19 +30,21 @@ def test_bws_sdk_provider_import_error():
                 name="Bitwarden Secrets",
                 enabled=True,
                 access_token="test-access-token",
-                vault_url="https://api.bitwarden.com"
+                vault_url="https://api.bitwarden.com",
             )
         ],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Create a runtime context
     context = build_runtime_context()
 
     # Mock the BitwardenClient and ClientSettings to be None (as if import failed)
-    with patch("config_injector.providers.BitwardenClient", None), \
-         patch("config_injector.providers.ClientSettings", None):
+    with (
+        patch("config_injector.providers.BitwardenClient", None),
+        patch("config_injector.providers.ClientSettings", None),
+    ):
         # Create and load the BWS provider
         provider_config = spec.configuration_providers[0]
         provider = BwsProvider(provider_config)
@@ -96,11 +98,11 @@ def test_bws_sdk_provider_success():
                 name="Bitwarden Secrets",
                 enabled=True,
                 access_token="test-access-token",
-                vault_url="https://api.bitwarden.com"
+                vault_url="https://api.bitwarden.com",
             )
         ],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Create a runtime context with environment variables containing secret IDs
@@ -108,8 +110,10 @@ def test_bws_sdk_provider_success():
     context = build_runtime_context()
 
     # Patch the module-level imports with our mocks
-    with patch("config_injector.providers.BitwardenClient", mock_bitwarden_client), \
-         patch("config_injector.providers.ClientSettings", mock_client_settings):
+    with (
+        patch("config_injector.providers.BitwardenClient", mock_bitwarden_client),
+        patch("config_injector.providers.ClientSettings", mock_client_settings),
+    ):
         # Create and load the BWS provider
         provider_config = spec.configuration_providers[0]
         provider = BwsProvider(provider_config)
@@ -118,7 +122,9 @@ def test_bws_sdk_provider_success():
         # Verify that the SDK implementation was used
         mock_bitwarden_client.assert_called_once()
         mock_auth.login_access_token.assert_called_once_with("test-access-token")
-        mock_secrets_client.get.assert_called_once_with("12345678-1234-1234-1234-123456789012")
+        mock_secrets_client.get.assert_called_once_with(
+            "12345678-1234-1234-1234-123456789012"
+        )
 
         # Verify that the secret was loaded
         assert "12345678-1234-1234-1234-123456789012" in provider_map
@@ -148,7 +154,10 @@ def test_bws_sdk_provider_auth_failure():
     mock_client.auth.return_value = mock_auth
 
     # Mock failed authentication
-    mock_auth.login_access_token.return_value = {"success": False, "message": "Invalid token"}
+    mock_auth.login_access_token.return_value = {
+        "success": False,
+        "message": "Invalid token",
+    }
 
     # Create a spec with a BWS provider
     spec = Spec(
@@ -160,11 +169,11 @@ def test_bws_sdk_provider_auth_failure():
                 name="Bitwarden Secrets",
                 enabled=True,
                 access_token="invalid-token",
-                vault_url="https://api.bitwarden.com"
+                vault_url="https://api.bitwarden.com",
             )
         ],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Set environment variable before building context for stub fallback
@@ -174,8 +183,10 @@ def test_bws_sdk_provider_auth_failure():
     context = build_runtime_context()
 
     # Patch the module-level imports with our mocks
-    with patch("config_injector.providers.BitwardenClient", mock_bitwarden_client), \
-         patch("config_injector.providers.ClientSettings", mock_client_settings):
+    with (
+        patch("config_injector.providers.BitwardenClient", mock_bitwarden_client),
+        patch("config_injector.providers.ClientSettings", mock_client_settings),
+    ):
         # Create and load the BWS provider
         provider_config = spec.configuration_providers[0]
         provider = BwsProvider(provider_config)
@@ -232,11 +243,11 @@ def test_bws_sdk_provider_secret_fetch_error():
                 name="Bitwarden Secrets",
                 enabled=True,
                 access_token="test-access-token",
-                vault_url="https://api.bitwarden.com"
+                vault_url="https://api.bitwarden.com",
             )
         ],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Create a runtime context with environment variables containing secret IDs
@@ -244,8 +255,10 @@ def test_bws_sdk_provider_secret_fetch_error():
     context = build_runtime_context()
 
     # Patch the module-level imports with our mocks
-    with patch("config_injector.providers.BitwardenClient", mock_bitwarden_client), \
-         patch("config_injector.providers.ClientSettings", mock_client_settings):
+    with (
+        patch("config_injector.providers.BitwardenClient", mock_bitwarden_client),
+        patch("config_injector.providers.ClientSettings", mock_client_settings),
+    ):
         # Create and load the BWS provider
         provider_config = spec.configuration_providers[0]
         provider = BwsProvider(provider_config)
@@ -254,7 +267,9 @@ def test_bws_sdk_provider_secret_fetch_error():
         # Verify that the SDK implementation was used
         mock_bitwarden_client.assert_called_once()
         mock_auth.login_access_token.assert_called_once_with("test-access-token")
-        mock_secrets_client.get.assert_called_once_with("12345678-1234-1234-1234-123456789012")
+        mock_secrets_client.get.assert_called_once_with(
+            "12345678-1234-1234-1234-123456789012"
+        )
 
         # Verify that the secret was not loaded (should be an empty map since the secret fetch failed)
         assert "12345678-1234-1234-1234-123456789012" not in provider_map
@@ -317,11 +332,11 @@ def test_bws_sdk_provider_with_filter_chain():
                 vault_url="https://api.bitwarden.com",
                 filter_chain=[
                     {"include": "^1234.*$"}  # Only include keys starting with 1234
-                ]
+                ],
             )
         ],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Create a runtime context with environment variables containing secret IDs
@@ -330,8 +345,10 @@ def test_bws_sdk_provider_with_filter_chain():
     context = build_runtime_context()
 
     # Patch the module-level imports with our mocks
-    with patch("config_injector.providers.BitwardenClient", mock_bitwarden_client), \
-         patch("config_injector.providers.ClientSettings", mock_client_settings):
+    with (
+        patch("config_injector.providers.BitwardenClient", mock_bitwarden_client),
+        patch("config_injector.providers.ClientSettings", mock_client_settings),
+    ):
         # Create and load the BWS provider
         provider_config = spec.configuration_providers[0]
         provider = BwsProvider(provider_config)
@@ -401,11 +418,11 @@ def test_bws_sdk_provider_token_expansion():
                 name="Bitwarden Secrets",
                 enabled=True,
                 access_token="${ENV:BWS_TOKEN}",
-                vault_url="${ENV:BWS_URL|https://api.bitwarden.com}"
+                vault_url="${ENV:BWS_URL|https://api.bitwarden.com}",
             )
         ],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Set environment variables for token expansion
@@ -417,8 +434,10 @@ def test_bws_sdk_provider_token_expansion():
     context = build_runtime_context()
 
     # Patch the module-level imports with our mocks
-    with patch("config_injector.providers.BitwardenClient", mock_bitwarden_client), \
-         patch("config_injector.providers.ClientSettings", mock_client_settings):
+    with (
+        patch("config_injector.providers.BitwardenClient", mock_bitwarden_client),
+        patch("config_injector.providers.ClientSettings", mock_client_settings),
+    ):
         # Create and load the BWS provider
         provider_config = spec.configuration_providers[0]
         provider = BwsProvider(provider_config)

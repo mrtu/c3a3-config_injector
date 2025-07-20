@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import sys
 from pathlib import Path  # noqa: TC003
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -21,20 +22,38 @@ console = Console()
 @app.command()
 def run(
     spec_file: Path = typer.Argument(..., help="Path to YAML specification file"),
-    dry_run_flag: bool = typer.Option(False, "--dry-run", help="Show what would be executed without running"),
-    json_output: bool = typer.Option(False, "--json", help="Output in JSON format (only with --dry-run)"),
+    dry_run_flag: bool = typer.Option(
+        False, "--dry-run", help="Show what would be executed without running"
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output in JSON format (only with --dry-run)"
+    ),
     profile: str | None = typer.Option(None, "--profile", help="Profile to use"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
-    quiet: bool = typer.Option(False, "--quiet", "-q", help="Enable quiet mode (minimal output)"),
-    env_passthrough: bool | None = typer.Option(None, "--env-passthrough/--no-env-passthrough", help="Override env_passthrough setting"),
-    mask_defaults: bool | None = typer.Option(None, "--mask-defaults/--no-mask-defaults", help="Override mask_defaults setting"),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Enable verbose output"
+    ),
+    quiet: bool = typer.Option(
+        False, "--quiet", "-q", help="Enable quiet mode (minimal output)"
+    ),
+    env_passthrough: bool | None = typer.Option(
+        None,
+        "--env-passthrough/--no-env-passthrough",
+        help="Override env_passthrough setting",
+    ),
+    mask_defaults: bool | None = typer.Option(
+        None,
+        "--mask-defaults/--no-mask-defaults",
+        help="Override mask_defaults setting",
+    ),
     strict: bool = typer.Option(False, "--strict", help="Enable strict validation"),
 ) -> None:
     """Run a configuration specification."""
     try:
         # Validate conflicting options
         if verbose and quiet:
-            console.print("[red]Error: --verbose and --quiet cannot be used together[/red]")
+            console.print(
+                "[red]Error: --verbose and --quiet cannot be used together[/red]"
+            )
             sys.exit(1)
 
         # Load specification
@@ -59,9 +78,13 @@ def run(
                         setattr(spec, key, value)
             else:
                 if spec.profiles is None:
-                    console.print(f"[yellow]Warning: No profiles defined in spec, ignoring --profile {profile}[/yellow]")
+                    console.print(
+                        f"[yellow]Warning: No profiles defined in spec, ignoring --profile {profile}[/yellow]"
+                    )
                 else:
-                    console.print(f"[red]Error: Profile '{profile}' not found in spec[/red]")
+                    console.print(
+                        f"[red]Error: Profile '{profile}' not found in spec[/red]"
+                    )
                     sys.exit(1)
 
         # Build runtime context
@@ -70,6 +93,7 @@ def run(
         # Perform validation if strict mode is enabled
         if strict:
             from .validation import semantic_validate
+
             semantic_errors = semantic_validate(spec, strict=True)
             if semantic_errors:
                 console.print("[red]Strict validation failed:[/red]")
@@ -89,6 +113,7 @@ def run(
 
             if json_output:
                 import json
+
                 console.print(json.dumps(report.json_summary, indent=2))
             else:
                 if not quiet:
@@ -97,7 +122,9 @@ def run(
                     console.print(report.text_summary)
         else:
             if json_output and not quiet:
-                console.print("[yellow]Warning: --json flag is ignored without --dry-run[/yellow]")
+                console.print(
+                    "[yellow]Warning: --json flag is ignored without --dry-run[/yellow]"
+                )
             # Execute the specification
             _execute_spec(spec, context, verbose=verbose, quiet=quiet)
 
@@ -110,14 +137,20 @@ def run(
 def validate(
     spec_file: Path = typer.Argument(..., help="Path to YAML specification file"),
     strict: bool = typer.Option(False, "--strict", help="Enable strict validation"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
-    quiet: bool = typer.Option(False, "--quiet", "-q", help="Enable quiet mode (minimal output)"),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Enable verbose output"
+    ),
+    quiet: bool = typer.Option(
+        False, "--quiet", "-q", help="Enable quiet mode (minimal output)"
+    ),
 ) -> None:
     """Validate a configuration specification."""
     try:
         # Validate conflicting options
         if verbose and quiet:
-            console.print("[red]Error: --verbose and --quiet cannot be used together[/red]")
+            console.print(
+                "[red]Error: --verbose and --quiet cannot be used together[/red]"
+            )
             sys.exit(1)
 
         # Load specification (this will validate schema)
@@ -149,6 +182,7 @@ def validate(
             console.print("[blue]Performing semantic validation...[/blue]")
 
         from .validation import semantic_validate
+
         semantic_errors = semantic_validate(spec, strict=strict)
 
         if semantic_errors:
@@ -171,14 +205,20 @@ def validate(
 @app.command()
 def explain(
     spec_file: Path = typer.Argument(..., help="Path to YAML specification file"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
-    quiet: bool = typer.Option(False, "--quiet", "-q", help="Enable quiet mode (minimal output)"),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Enable verbose output"
+    ),
+    quiet: bool = typer.Option(
+        False, "--quiet", "-q", help="Enable quiet mode (minimal output)"
+    ),
 ) -> None:
     """Explain a configuration specification."""
     try:
         # Validate conflicting options
         if verbose and quiet:
-            console.print("[red]Error: --verbose and --quiet cannot be used together[/red]")
+            console.print(
+                "[red]Error: --verbose and --quiet cannot be used together[/red]"
+            )
             sys.exit(1)
 
         # Load specification
@@ -210,10 +250,13 @@ def print_schema() -> None:
     schema = Spec.model_json_schema()
 
     import json
+
     console.print(json.dumps(schema, indent=2))
 
 
-def _execute_spec(spec, context, verbose: bool = False, quiet: bool = False) -> None:
+def _execute_spec(
+    spec: Any, context: Any, verbose: bool = False, quiet: bool = False
+) -> None:
     """Execute a specification."""
     from .injectors import resolve_injector
     from .providers import load_providers
@@ -228,12 +271,15 @@ def _execute_spec(spec, context, verbose: bool = False, quiet: bool = False) -> 
     # Resolve injectors
     resolved = []
     for injector in spec.configuration_injectors:
-        resolved_inj = resolve_injector(injector, context, providers, token_engine, spec)
+        resolved_inj = resolve_injector(
+            injector, context, providers, token_engine, spec
+        )
         resolved.append(resolved_inj)
 
     # Build final result
     from .core import build_env_and_argv
-    build = build_env_and_argv(spec, resolved, context)
+
+    build = build_env_and_argv(spec, resolved, context, token_engine)
 
     # Check for errors
     if build.errors:
@@ -281,7 +327,7 @@ def _execute_spec(spec, context, verbose: bool = False, quiet: bool = False) -> 
                 file_path.unlink(missing_ok=True)
 
 
-def _display_explanation(spec, report) -> None:
+def _display_explanation(spec: Any, report: Any) -> None:
     """Display detailed explanation of a specification."""
     # Providers table
     providers_table = Table(title="Configuration Providers")
@@ -294,7 +340,11 @@ def _display_explanation(spec, report) -> None:
         masked_count = sum(1 for v in provider_map.values() if v == "<masked>")
         providers_table.add_row(
             provider_id,
-            "env" if provider_id == "env" else "dotenv" if "dotenv" in provider_id else "bws",
+            (
+                "env"
+                if provider_id == "env"
+                else "dotenv" if "dotenv" in provider_id else "bws"
+            ),
             str(len(provider_map)),
             str(masked_count),
         )
@@ -310,7 +360,9 @@ def _display_explanation(spec, report) -> None:
 
     for resolved_inj in report.resolved:
         if resolved_inj.value is not None:
-            value_display = "<masked>" if resolved_inj.is_sensitive else resolved_inj.value
+            value_display = (
+                "<masked>" if resolved_inj.is_sensitive else resolved_inj.value
+            )
             status = "✓ Resolved"
         elif resolved_inj.skipped:
             value_display = "N/A"

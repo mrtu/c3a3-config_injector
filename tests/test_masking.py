@@ -26,10 +26,10 @@ def test_sensitive_injector_masking():
                 kind="env_var",
                 aliases=["TEST_SECRET"],
                 sources=["super_secret_value"],
-                sensitive=True
+                sensitive=True,
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -42,7 +42,9 @@ def test_sensitive_injector_masking():
     token_engine = TokenEngine(context, providers)
 
     # Resolve injector
-    resolved = resolve_injector(spec.configuration_injectors[0], context, providers, token_engine)
+    resolved = resolve_injector(
+        spec.configuration_injectors[0], context, providers, token_engine
+    )
 
     # Verify the injector is marked as sensitive
     assert resolved.is_sensitive
@@ -76,10 +78,10 @@ def test_sensitive_injector_stream_masking():
                 kind="env_var",
                 aliases=["TEST_SECRET"],
                 sources=["super_secret_value"],
-                sensitive=True
+                sensitive=True,
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "${TEST_SECRET}"])
+        target=Target(working_dir="/tmp", command=["echo", "${TEST_SECRET}"]),
     )
 
     # Build runtime context
@@ -144,24 +146,24 @@ def test_multiple_sensitive_injectors():
                 kind="env_var",
                 aliases=["TEST_SECRET1"],
                 sources=["super_secret_value1"],
-                sensitive=True
+                sensitive=True,
             ),
             Injector(
                 name="test_sensitive2",
                 kind="named",
                 aliases=["--password"],
                 sources=["super_secret_value2"],
-                sensitive=True
+                sensitive=True,
             ),
             Injector(
                 name="test_not_sensitive",
                 kind="positional",
                 sources=["not_secret_value"],
                 sensitive=False,
-                order=1
-            )
+                order=1,
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -177,7 +179,10 @@ def test_multiple_sensitive_injectors():
 
     # Verify sensitive values are masked in the JSON summary
     for injection in dry_run_result.json_summary["injections"]:
-        if injection["name"] == "test_sensitive1" or injection["name"] == "test_sensitive2":
+        if (
+            injection["name"] == "test_sensitive1"
+            or injection["name"] == "test_sensitive2"
+        ):
             assert injection["sensitive"]
             assert injection["value"] == MASKED_VALUE
         elif injection["name"] == "test_not_sensitive":
@@ -196,9 +201,7 @@ def test_provider_masking():
                 type="env",
                 enabled=True,
                 mask=True,
-                filter_chain=[
-                    {"include": "TEST_.*"}
-                ]
+                filter_chain=[{"include": "TEST_.*"}],
             )
         ],
         configuration_injectors=[
@@ -206,10 +209,10 @@ def test_provider_masking():
                 name="test_injector",
                 kind="env_var",
                 aliases=["TEST_VAR"],
-                sources=["${PROVIDER:test_provider:TEST_SECRET}"]
+                sources=["${PROVIDER:test_provider:TEST_SECRET}"],
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Set up environment with test values
@@ -248,11 +251,13 @@ def test_error_message_masking():
                 name="test_sensitive_error",
                 kind="env_var",
                 aliases=["TEST_SECRET"],
-                sources=["${PROVIDER:nonexistent:super_secret_value}"],  # This will cause an error
-                sensitive=True
+                sources=[
+                    "${PROVIDER:nonexistent:super_secret_value}"
+                ],  # This will cause an error
+                sensitive=True,
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -283,24 +288,24 @@ def test_partial_string_masking():
                 kind="env_var",
                 aliases=["TEST_VAR1"],
                 sources=["secret"],
-                sensitive=True
+                sensitive=True,
             ),
             Injector(
                 name="test_partial2",
                 kind="env_var",
                 aliases=["TEST_VAR2"],
                 sources=["my_secret_value"],  # Contains "secret" as substring
-                sensitive=True
+                sensitive=True,
             ),
             Injector(
                 name="test_partial3",
                 kind="positional",
                 sources=["secret_and_more_secret"],  # Contains "secret" multiple times
                 sensitive=True,
-                order=1
-            )
+                order=1,
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -328,10 +333,13 @@ def test_case_sensitive_masking():
                 kind="env_var",
                 aliases=["TEST_SECRET"],
                 sources=["SecretValue"],
-                sensitive=True
+                sensitive=True,
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "SecretValue", "secretvalue", "SECRETVALUE"])
+        target=Target(
+            working_dir="/tmp",
+            command=["echo", "SecretValue", "secretvalue", "SECRETVALUE"],
+        ),
     )
 
     # Build runtime context
@@ -358,10 +366,10 @@ def test_file_path_masking():
                 name="test_file_secret",
                 kind="file",
                 sources=["secret_content"],
-                sensitive=True
+                sensitive=True,
             )
         ],
-        target=Target(working_dir="/tmp", command=["cat", "${FILE:test_file_secret}"])
+        target=Target(working_dir="/tmp", command=["cat", "${FILE:test_file_secret}"]),
     )
 
     # Build runtime context
@@ -386,10 +394,10 @@ def test_stdin_fragment_masking():
                 name="test_stdin_secret",
                 kind="stdin_fragment",
                 sources=["secret_input_data"],
-                sensitive=True
+                sensitive=True,
             )
         ],
-        target=Target(working_dir="/tmp", command=["cat"])
+        target=Target(working_dir="/tmp", command=["cat"]),
     )
 
     # Build runtime context
@@ -413,9 +421,7 @@ def test_token_expansion_masking():
                 id="secret_provider",
                 type="env",
                 enabled=True,
-                filter_chain=[
-                    {"include": "SECRET_.*"}
-                ]
+                filter_chain=[{"include": "SECRET_.*"}],
             )
         ],
         configuration_injectors=[
@@ -424,10 +430,10 @@ def test_token_expansion_masking():
                 kind="env_var",
                 aliases=["EXPANDED_SECRET"],
                 sources=["${PROVIDER:secret_provider:SECRET_KEY}"],
-                sensitive=True
+                sensitive=True,
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "${EXPANDED_SECRET}"])
+        target=Target(working_dir="/tmp", command=["echo", "${EXPANDED_SECRET}"]),
     )
 
     # Set up environment
@@ -463,14 +469,14 @@ def test_json_log_format_masking():
                 kind="env_var",
                 aliases=["JSON_SECRET"],
                 sources=["json_secret_value"],
-                sensitive=True
+                sensitive=True,
             )
         ],
         target=Target(
             working_dir="/tmp",
             command=["echo", "${JSON_SECRET}"],
-            stdout=Stream(path="/tmp/test.log", format="json", tee_terminal=False)
-        )
+            stdout=Stream(path="/tmp/test.log", format="json", tee_terminal=False),
+        ),
     )
 
     # Build runtime context
@@ -492,6 +498,7 @@ def test_json_log_format_masking():
             # Write masked text to buffer (simulating JSON format)
             import json
             from datetime import datetime
+
             for line in masked_text.splitlines():
                 if line.strip():
                     json_line = {
@@ -533,10 +540,10 @@ def test_environment_variable_names_security():
                 kind="env_var",
                 aliases=["SECRET_API_KEY"],  # The name itself might be sensitive
                 sources=["secret_value"],
-                sensitive=True
+                sensitive=True,
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -566,10 +573,10 @@ def test_working_directory_masking():
                 kind="env_var",
                 aliases=["SECRET_PATH"],
                 sources=["/secret/path/value"],
-                sensitive=True
+                sensitive=True,
             )
         ],
-        target=Target(working_dir="/secret/path/value", command=["echo", "test"])
+        target=Target(working_dir="/secret/path/value", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -579,7 +586,10 @@ def test_working_directory_masking():
     dry_run_result = dry_run(spec, context)
 
     # Verify sensitive path value is masked in injector output
-    assert "/secret/path/value" not in dry_run_result.text_summary or MASKED_VALUE in dry_run_result.text_summary
+    assert (
+        "/secret/path/value" not in dry_run_result.text_summary
+        or MASKED_VALUE in dry_run_result.text_summary
+    )
 
     # Note: Working directory path in target is configuration, not injected secret,
     # so it may still appear in the summary. This test ensures injected values are masked.
@@ -597,24 +607,24 @@ def test_multiple_overlapping_sensitive_values():
                 kind="env_var",
                 aliases=["SECRET1"],
                 sources=["abc123"],
-                sensitive=True
+                sensitive=True,
             ),
             Injector(
                 name="test_overlap2",
                 kind="env_var",
                 aliases=["SECRET2"],
                 sources=["123def"],
-                sensitive=True
+                sensitive=True,
             ),
             Injector(
                 name="test_overlap3",
                 kind="env_var",
                 aliases=["SECRET3"],
                 sources=["abc123def"],  # Contains both other secrets
-                sensitive=True
-            )
+                sensitive=True,
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "abc123def"])
+        target=Target(working_dir="/tmp", command=["echo", "abc123def"]),
     )
 
     # Build runtime context

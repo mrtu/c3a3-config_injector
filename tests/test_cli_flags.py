@@ -94,7 +94,9 @@ profiles:
 
 def test_run_verbose_flag(runner, sample_spec_file):
     """Test the --verbose flag in run command."""
-    result = runner.invoke(app, ["run", str(sample_spec_file), "--dry-run", "--verbose"])
+    result = runner.invoke(
+        app, ["run", str(sample_spec_file), "--dry-run", "--verbose"]
+    )
 
     assert result.exit_code == 0
     # In verbose mode with dry-run, we should see the dry run report
@@ -120,7 +122,10 @@ def test_run_verbose_and_quiet_conflict(runner, sample_spec_file):
 
 def test_run_profile_flag(runner, profile_spec_file):
     """Test the --profile flag in run command."""
-    result = runner.invoke(app, ["run", str(profile_spec_file), "--dry-run", "--profile", "dev", "--verbose"])
+    result = runner.invoke(
+        app,
+        ["run", str(profile_spec_file), "--dry-run", "--profile", "dev", "--verbose"],
+    )
 
     assert result.exit_code == 0
     assert "Applying profile: dev" in result.stdout
@@ -128,7 +133,9 @@ def test_run_profile_flag(runner, profile_spec_file):
 
 def test_run_profile_not_found(runner, profile_spec_file):
     """Test --profile flag with non-existent profile."""
-    result = runner.invoke(app, ["run", str(profile_spec_file), "--profile", "nonexistent"])
+    result = runner.invoke(
+        app, ["run", str(profile_spec_file), "--profile", "nonexistent"]
+    )
 
     assert result.exit_code == 1
     assert "Profile 'nonexistent' not found" in result.stdout
@@ -144,7 +151,9 @@ def test_run_profile_no_profiles_defined(runner, sample_spec_file):
 
 def test_run_env_passthrough_override(runner, sample_spec_file):
     """Test the --env-passthrough flag."""
-    result = runner.invoke(app, ["run", str(sample_spec_file), "--dry-run", "--env-passthrough"])
+    result = runner.invoke(
+        app, ["run", str(sample_spec_file), "--dry-run", "--env-passthrough"]
+    )
 
     assert result.exit_code == 0
     # The flag should override the spec setting
@@ -152,7 +161,9 @@ def test_run_env_passthrough_override(runner, sample_spec_file):
 
 def test_run_no_env_passthrough_override(runner, sample_spec_file):
     """Test the --no-env-passthrough flag."""
-    result = runner.invoke(app, ["run", str(sample_spec_file), "--dry-run", "--no-env-passthrough"])
+    result = runner.invoke(
+        app, ["run", str(sample_spec_file), "--dry-run", "--no-env-passthrough"]
+    )
 
     assert result.exit_code == 0
     # The flag should override the spec setting
@@ -160,7 +171,9 @@ def test_run_no_env_passthrough_override(runner, sample_spec_file):
 
 def test_run_mask_defaults_override(runner, sample_spec_file):
     """Test the --mask-defaults flag."""
-    result = runner.invoke(app, ["run", str(sample_spec_file), "--dry-run", "--mask-defaults"])
+    result = runner.invoke(
+        app, ["run", str(sample_spec_file), "--dry-run", "--mask-defaults"]
+    )
 
     assert result.exit_code == 0
     # The flag should override the spec setting
@@ -168,7 +181,9 @@ def test_run_mask_defaults_override(runner, sample_spec_file):
 
 def test_run_no_mask_defaults_override(runner, sample_spec_file):
     """Test the --no-mask-defaults flag."""
-    result = runner.invoke(app, ["run", str(sample_spec_file), "--dry-run", "--no-mask-defaults"])
+    result = runner.invoke(
+        app, ["run", str(sample_spec_file), "--dry-run", "--no-mask-defaults"]
+    )
 
     assert result.exit_code == 0
     # The flag should override the spec setting
@@ -211,7 +226,9 @@ def test_validate_strict_flag(runner, sample_spec_file):
 
 def test_validate_verbose_and_quiet_conflict(runner, sample_spec_file):
     """Test that --verbose and --quiet cannot be used together in validate."""
-    result = runner.invoke(app, ["validate", str(sample_spec_file), "--verbose", "--quiet"])
+    result = runner.invoke(
+        app, ["validate", str(sample_spec_file), "--verbose", "--quiet"]
+    )
 
     assert result.exit_code == 1
     assert "cannot be used together" in result.stdout
@@ -235,7 +252,9 @@ def test_explain_quiet_flag(runner, sample_spec_file):
 
 def test_explain_verbose_and_quiet_conflict(runner, sample_spec_file):
     """Test that --verbose and --quiet cannot be used together in explain."""
-    result = runner.invoke(app, ["explain", str(sample_spec_file), "--verbose", "--quiet"])
+    result = runner.invoke(
+        app, ["explain", str(sample_spec_file), "--verbose", "--quiet"]
+    )
 
     assert result.exit_code == 1
     assert "cannot be used together" in result.stdout
@@ -248,6 +267,7 @@ def test_json_output_flag(runner, sample_spec_file):
     assert result.exit_code == 0
     # Should output valid JSON
     import json
+
     try:
         json.loads(result.stdout)
     except json.JSONDecodeError:

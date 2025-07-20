@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 
 from config_injector.core import RuntimeContext
-from config_injector.models import Stream
+from config_injector.models import Spec, Stream, Target
 from config_injector.streams import StreamConfig, StreamWriter, prepare_stream
 from config_injector.token_engine import TokenEngine
 
@@ -16,10 +16,7 @@ from config_injector.token_engine import TokenEngine
 def test_stream_config():
     """Test StreamConfig creation."""
     config = StreamConfig(
-        path=Path("/tmp/test.log"),
-        tee_terminal=True,
-        append=False,
-        format="text"
+        path=Path("/tmp/test.log"), tee_terminal=True, append=False, format="text"
     )
 
     assert config.path == Path("/tmp/test.log")
@@ -33,10 +30,7 @@ def test_prepare_stream():
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create a stream model
         stream = Stream(
-            path="${HOME}/test.log",
-            tee_terminal=True,
-            append=False,
-            format="text"
+            path="${HOME}/test.log", tee_terminal=True, append=False, format="text"
         )
 
         # Create a runtime context
@@ -45,7 +39,7 @@ def test_prepare_stream():
             now=None,
             pid=12345,
             home=tmpdir,  # Use temporary directory as HOME
-            seq=1
+            seq=1,
         )
 
         # Create a token engine
@@ -70,7 +64,7 @@ def test_prepare_stream_with_complex_tokens():
             path="${HOME}/logs/${DATE:%Y-%m-%d}/${PID}_${SEQ}_${UUID}.log",
             tee_terminal=True,
             append=False,
-            format="text"
+            format="text",
         )
 
         # Create a runtime context with a fixed datetime for testing
@@ -80,7 +74,7 @@ def test_prepare_stream_with_complex_tokens():
             now=test_date,
             pid=12345,
             home=tmpdir,  # Use temporary directory as HOME
-            seq=42
+            seq=42,
         )
 
         # Create a token engine
@@ -103,7 +97,7 @@ def test_prepare_stream_with_complex_tokens():
 
         # UUID should be in the path
         # Extract the part between the prefix and the .log extension
-        uuid_part = path_str[len(expected_prefix):].split(".")[0]
+        uuid_part = path_str[len(expected_prefix) :].split(".")[0]
         # UUID should be a valid UUID (standard length is 36 characters)
         assert len(uuid_part) >= 36  # UUID might contain additional characters
 
@@ -115,13 +109,7 @@ def test_prepare_stream_with_complex_tokens():
 def test_prepare_stream_with_none():
     """Test prepare_stream function with None stream."""
     # Create a runtime context
-    context = RuntimeContext(
-        env={},
-        now=None,
-        pid=12345,
-        home="/home/user",
-        seq=1
-    )
+    context = RuntimeContext(env={}, now=None, pid=12345, home="/home/user", seq=1)
 
     # Create a token engine
     token_engine = TokenEngine(context)
@@ -137,23 +125,18 @@ def test_prepare_stream_with_none():
 
 def test_prepare_stream_with_default_format():
     """Test prepare_stream function with default_logging_format in spec."""
-    from config_injector.models import Spec, Target
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create a stream model with no format specified
-        stream = Stream(
-            path="${HOME}/test.log",
-            tee_terminal=True,
-            append=False
-        )
+        stream = Stream(path="${HOME}/test.log", tee_terminal=True, append=False)
 
         # Create a spec with default_logging_format
         spec = Spec(
             version="0.1",
-            default_logging_format="json",
             configuration_providers=[],
             configuration_injectors=[],
-            target=Target(working_dir="/tmp", command=["echo", "test"])
+            target=Target(working_dir="/tmp", command=["echo", "test"]),
+            default_logging_format="json",
         )
 
         # Create a runtime context
@@ -162,7 +145,7 @@ def test_prepare_stream_with_default_format():
             now=None,
             pid=12345,
             home=tmpdir,  # Use temporary directory as HOME
-            seq=1
+            seq=1,
         )
 
         # Create a token engine
@@ -186,10 +169,7 @@ def test_stream_writer_file_output():
 
         # Create a stream config
         config = StreamConfig(
-            path=temp_file,
-            tee_terminal=False,
-            append=False,
-            format="text"
+            path=temp_file, tee_terminal=False, append=False, format="text"
         )
 
         # Create a stream writer
@@ -213,12 +193,7 @@ def test_stream_writer_file_output():
 def test_stream_writer_tee_terminal():
     """Test StreamWriter teeing to terminal."""
     # Create a stream config with tee_terminal=True
-    config = StreamConfig(
-        path=None,
-        tee_terminal=True,
-        append=False,
-        format="text"
-    )
+    config = StreamConfig(path=None, tee_terminal=True, append=False, format="text")
 
     # Create a mock buffer
     mock_buffer = io.BytesIO()
@@ -227,8 +202,10 @@ def test_stream_writer_tee_terminal():
     writer = StreamWriter(stdout_config=config)
 
     # Patch sys.stdout.buffer to use our mock buffer
-    with patch("sys.stdout.buffer.write", mock_buffer.write), \
-         patch("sys.stdout.buffer.flush"):
+    with (
+        patch("sys.stdout.buffer.write", mock_buffer.write),
+        patch("sys.stdout.buffer.flush"),
+    ):
         # Write some data
         writer.write_stdout(b"Hello, world!\n")
 
@@ -244,10 +221,7 @@ def test_stream_writer_sensitive_data():
 
         # Create a stream config
         config = StreamConfig(
-            path=temp_file,
-            tee_terminal=False,
-            append=False,
-            format="text"
+            path=temp_file, tee_terminal=False, append=False, format="text"
         )
 
         # Create a stream writer
@@ -280,10 +254,7 @@ def test_stream_writer_json_format():
 
         # Create a stream config
         config = StreamConfig(
-            path=temp_file,
-            tee_terminal=False,
-            append=False,
-            format="json"
+            path=temp_file, tee_terminal=False, append=False, format="json"
         )
 
         # Create a stream writer

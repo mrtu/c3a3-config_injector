@@ -1,6 +1,5 @@
 """Tests for the dry-run functionality."""
 
-
 import pytest
 
 from config_injector.core import build_runtime_context, dry_run
@@ -18,7 +17,7 @@ def test_dry_run_text_summary():
                 id="env",
                 name="Test Environment",
                 passthrough=True,
-                filter_chain=[]
+                filter_chain=[],
             )
         ],
         configuration_injectors=[
@@ -26,10 +25,10 @@ def test_dry_run_text_summary():
                 name="test_var",
                 kind="env_var",
                 aliases=["TEST_VAR"],
-                sources=["test_value"]
+                sources=["test_value"],
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -56,7 +55,7 @@ def test_dry_run_json_summary():
                 id="env",
                 name="Test Environment",
                 passthrough=True,
-                filter_chain=[]
+                filter_chain=[],
             )
         ],
         configuration_injectors=[
@@ -64,10 +63,10 @@ def test_dry_run_json_summary():
                 name="test_var",
                 kind="env_var",
                 aliases=["TEST_VAR"],
-                sources=["test_value"]
+                sources=["test_value"],
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -115,7 +114,7 @@ def test_dry_run_sensitive_values():
                 id="env",
                 name="Test Environment",
                 passthrough=True,
-                filter_chain=[]
+                filter_chain=[],
             )
         ],
         configuration_injectors=[
@@ -124,10 +123,10 @@ def test_dry_run_sensitive_values():
                 kind="env_var",
                 aliases=["PASSWORD"],
                 sources=["secret123"],
-                sensitive=True
+                sensitive=True,
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context

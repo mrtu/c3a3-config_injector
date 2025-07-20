@@ -1,6 +1,5 @@
 """Tests for the semantic validation module."""
 
-
 import pytest
 
 from config_injector.models import Injector, Provider, Spec, Target
@@ -25,18 +24,18 @@ def test_validate_unique_provider_ids():
                 id="env",
                 name="Test Environment",
                 passthrough=True,
-                filter_chain=[]
+                filter_chain=[],
             ),
             Provider(
                 type="dotenv",
                 id="env",  # Duplicate ID
                 name="Dotenv Provider",
                 passthrough=False,
-                filter_chain=[]
-            )
+                filter_chain=[],
+            ),
         ],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_unique_provider_ids(spec)
@@ -52,18 +51,18 @@ def test_validate_unique_provider_ids():
                 id="env",
                 name="Test Environment",
                 passthrough=True,
-                filter_chain=[]
+                filter_chain=[],
             ),
             Provider(
                 type="dotenv",
                 id="dotenv",  # Unique ID
                 name="Dotenv Provider",
                 passthrough=False,
-                filter_chain=[]
-            )
+                filter_chain=[],
+            ),
         ],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_unique_provider_ids(spec)
@@ -81,16 +80,16 @@ def test_validate_unique_injector_names():
                 name="test_var",
                 kind="env_var",
                 aliases=["TEST_VAR"],
-                sources=["test_value"]
+                sources=["test_value"],
             ),
             Injector(
                 name="test_var",  # Duplicate name
                 kind="named",
                 aliases=["--test"],
-                sources=["test_value"]
-            )
+                sources=["test_value"],
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_unique_injector_names(spec)
@@ -106,16 +105,16 @@ def test_validate_unique_injector_names():
                 name="test_var",
                 kind="env_var",
                 aliases=["TEST_VAR"],
-                sources=["test_value"]
+                sources=["test_value"],
             ),
             Injector(
                 name="test_arg",  # Unique name
                 kind="named",
                 aliases=["--test"],
-                sources=["test_value"]
-            )
+                sources=["test_value"],
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_unique_injector_names(spec)
@@ -133,16 +132,16 @@ def test_validate_alias_syntax():
                 name="test_var",
                 kind="env_var",
                 aliases=["invalid-alias"],  # Invalid: contains hyphen
-                sources=["test_value"]
+                sources=["test_value"],
             ),
             Injector(
                 name="test_var2",
                 kind="env_var",
                 aliases=["1INVALID"],  # Invalid: starts with number
-                sources=["test_value"]
-            )
+                sources=["test_value"],
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_alias_syntax(spec)
@@ -159,22 +158,22 @@ def test_validate_alias_syntax():
                 name="test_arg",
                 kind="named",
                 aliases=["test"],  # Invalid: doesn't start with -
-                sources=["test_value"]
+                sources=["test_value"],
             ),
             Injector(
                 name="test_arg2",
                 kind="named",
                 aliases=["--t"],  # Invalid: too short for long form
-                sources=["test_value"]
+                sources=["test_value"],
             ),
             Injector(
                 name="test_arg3",
                 kind="named",
                 aliases=["-too-long"],  # Invalid: too long for short form
-                sources=["test_value"]
-            )
+                sources=["test_value"],
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_alias_syntax(spec)
@@ -192,16 +191,16 @@ def test_validate_alias_syntax():
                 name="test_var",
                 kind="env_var",
                 aliases=["TEST_VAR"],  # Valid env_var alias
-                sources=["test_value"]
+                sources=["test_value"],
             ),
             Injector(
                 name="test_arg",
                 kind="named",
                 aliases=["--test", "-t"],  # Valid named aliases
-                sources=["test_value"]
-            )
+                sources=["test_value"],
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_alias_syntax(spec)
@@ -220,10 +219,10 @@ def test_validate_positional_ordering():
                 kind="positional",
                 aliases=[],
                 sources=["value1"],
-                order=None  # Missing order
+                order=None,  # Missing order
             )
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_positional_ordering(spec)
@@ -236,21 +235,17 @@ def test_validate_positional_ordering():
         configuration_providers=[],
         configuration_injectors=[
             Injector(
-                name="pos1",
-                kind="positional",
-                aliases=[],
-                sources=["value1"],
-                order=1
+                name="pos1", kind="positional", aliases=[], sources=["value1"], order=1
             ),
             Injector(
                 name="pos2",
                 kind="positional",
                 aliases=[],
                 sources=["value2"],
-                order=1  # Duplicate order
-            )
+                order=1,  # Duplicate order
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_positional_ordering(spec)
@@ -263,21 +258,17 @@ def test_validate_positional_ordering():
         configuration_providers=[],
         configuration_injectors=[
             Injector(
-                name="pos1",
-                kind="positional",
-                aliases=[],
-                sources=["value1"],
-                order=1
+                name="pos1", kind="positional", aliases=[], sources=["value1"], order=1
             ),
             Injector(
                 name="pos2",
                 kind="positional",
                 aliases=[],
                 sources=["value2"],
-                order=3  # Gap in sequence
-            )
+                order=3,  # Gap in sequence
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_positional_ordering(spec)
@@ -290,21 +281,13 @@ def test_validate_positional_ordering():
         configuration_providers=[],
         configuration_injectors=[
             Injector(
-                name="pos1",
-                kind="positional",
-                aliases=[],
-                sources=["value1"],
-                order=1
+                name="pos1", kind="positional", aliases=[], sources=["value1"], order=1
             ),
             Injector(
-                name="pos2",
-                kind="positional",
-                aliases=[],
-                sources=["value2"],
-                order=2
-            )
+                name="pos2", kind="positional", aliases=[], sources=["value2"], order=2
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_positional_ordering(spec)
@@ -322,16 +305,16 @@ def test_validate_strict_rules():
                 name="test_var",
                 kind="env_var",
                 aliases=[],  # Missing aliases
-                sources=["test_value"]
+                sources=["test_value"],
             ),
             Injector(
                 name="test_arg",
                 kind="named",
                 aliases=["--test"],
-                sources=[]  # Missing sources
-            )
+                sources=[],  # Missing sources
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_strict_rules(spec)
@@ -348,16 +331,16 @@ def test_validate_strict_rules():
                 name="test_var",
                 kind="env_var",
                 aliases=["TEST_VAR"],
-                sources=["test_value"]
+                sources=["test_value"],
             ),
             Injector(
                 name="test_arg",
                 kind="named",
                 aliases=["--test"],
-                sources=["test_value"]
-            )
+                sources=["test_value"],
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = validate_strict_rules(spec)
@@ -375,37 +358,39 @@ def test_semantic_validate():
                 id="env",
                 name="Test Environment",
                 passthrough=True,
-                filter_chain=[]
+                filter_chain=[],
             ),
             Provider(
                 type="dotenv",
                 id="env",  # Duplicate ID
                 name="Dotenv Provider",
                 passthrough=False,
-                filter_chain=[]
-            )
+                filter_chain=[],
+            ),
         ],
         configuration_injectors=[
             Injector(
                 name="test_var",
                 kind="env_var",
                 aliases=["invalid-alias"],  # Invalid alias
-                sources=["test_value"]
+                sources=["test_value"],
             ),
             Injector(
                 name="pos1",
                 kind="positional",
                 aliases=[],
                 sources=["value1"],
-                order=None  # Missing order
-            )
+                order=None,  # Missing order
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Test without strict mode
     errors = semantic_validate(spec, strict=False)
-    assert len(errors) == 3  # 1 for duplicate ID, 1 for invalid alias, 1 for missing order
+    assert (
+        len(errors) == 3
+    )  # 1 for duplicate ID, 1 for invalid alias, 1 for missing order
 
     # Test with strict mode
     errors = semantic_validate(spec, strict=True)
@@ -420,31 +405,31 @@ def test_semantic_validate():
                 id="env",
                 name="Test Environment",
                 passthrough=True,
-                filter_chain=[]
+                filter_chain=[],
             ),
             Provider(
                 type="dotenv",
                 id="dotenv",
                 name="Dotenv Provider",
                 passthrough=False,
-                filter_chain=[]
-            )
+                filter_chain=[],
+            ),
         ],
         configuration_injectors=[
             Injector(
                 name="test_var",
                 kind="env_var",
                 aliases=["TEST_VAR"],
-                sources=["test_value"]
+                sources=["test_value"],
             ),
             Injector(
                 name="test_arg",
                 kind="named",
                 aliases=["--test", "-t"],
-                sources=["test_value"]
-            )
+                sources=["test_value"],
+            ),
         ],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     errors = semantic_validate(spec, strict=False)

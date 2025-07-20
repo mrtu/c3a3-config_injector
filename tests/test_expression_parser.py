@@ -16,7 +16,7 @@ class TestExpressionLexer:
 
     def test_tokenize_simple_literals(self):
         """Test tokenizing simple literals."""
-        lexer = ExpressionLexer('true false 42 3.14 "hello" \'world\'')
+        lexer = ExpressionLexer("true false 42 3.14 \"hello\" 'world'")
         tokens = lexer.tokenize()
 
         assert len(tokens) == 7  # 6 tokens + EOF
@@ -228,38 +228,29 @@ class TestExpressionParser:
 
         # AND has higher precedence than OR
         ast = parse_expression("false OR true AND false")
-        assert ast.evaluate({}) is False  # false OR (true AND false) = false OR false = false
+        assert (
+            ast.evaluate({}) is False
+        )  # false OR (true AND false) = false OR false = false
 
         ast = parse_expression("true AND false OR true")
-        assert ast.evaluate({}) is True  # (true AND false) OR true = false OR true = true
+        assert (
+            ast.evaluate({}) is True
+        )  # (true AND false) OR true = false OR true = true
 
     def test_parse_complex_expression(self):
         """Test parsing complex expressions."""
-        expr = '(status == "active" AND count > 5) OR (debug == true AND NOT production)'
+        expr = (
+            '(status == "active" AND count > 5) OR (debug == true AND NOT production)'
+        )
         ast = parse_expression(expr)
 
-        context = {
-            "status": "active",
-            "count": 10,
-            "debug": True,
-            "production": False
-        }
+        context = {"status": "active", "count": 10, "debug": True, "production": False}
         assert ast.evaluate(context) is True
 
-        context = {
-            "status": "inactive",
-            "count": 3,
-            "debug": True,
-            "production": False
-        }
+        context = {"status": "inactive", "count": 3, "debug": True, "production": False}
         assert ast.evaluate(context) is True  # Second part is true
 
-        context = {
-            "status": "inactive",
-            "count": 3,
-            "debug": False,
-            "production": True
-        }
+        context = {"status": "inactive", "count": 3, "debug": False, "production": True}
         assert ast.evaluate(context) is False
 
     def test_parse_error_unexpected_token(self):
@@ -386,11 +377,7 @@ class TestBackwardCompatibility:
     def test_token_expansion_compatibility(self):
         """Test that expressions work with token expansion results."""
         # Simulate token expansion results
-        context = {
-            "DEBUG": "true",
-            "PRODUCTION": "false",
-            "ENV": "development"
-        }
+        context = {"DEBUG": "true", "PRODUCTION": "false", "ENV": "development"}
 
         # These are the types of expressions used in existing tests
         assert evaluate_expression('DEBUG == "true"', context) is True

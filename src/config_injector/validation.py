@@ -101,7 +101,11 @@ def validate_alias_syntax(spec: Spec) -> Errors:
                         f"Invalid named alias '{alias}' for injector '{injector.name}'. "
                         f"Long form (--) must have at least 2 characters after --"
                     )
-                elif alias.startswith("-") and not alias.startswith("--") and len(alias) != 2:
+                elif (
+                    alias.startswith("-")
+                    and not alias.startswith("--")
+                    and len(alias) != 2
+                ):
                     errors.append(
                         f"Invalid named alias '{alias}' for injector '{injector.name}'. "
                         f"Short form (-) must be exactly 2 characters"
@@ -120,7 +124,9 @@ def validate_positional_ordering(spec: Spec) -> Errors:
     - Order values must be sequential (no gaps)
     """
     errors = []
-    positional_injectors = [inj for inj in spec.configuration_injectors if inj.kind == "positional"]
+    positional_injectors = [
+        inj for inj in spec.configuration_injectors if inj.kind == "positional"
+    ]
 
     # Check that all positional injectors have an order
     for injector in positional_injectors:

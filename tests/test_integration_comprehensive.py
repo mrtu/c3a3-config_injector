@@ -36,10 +36,7 @@ class TestDryRunComprehensive:
             version="0.1",
             configuration_providers=[
                 Provider(
-                    type="env",
-                    id="env",
-                    name="Environment Variables",
-                    passthrough=True
+                    type="env", id="env", name="Environment Variables", passthrough=True
                 )
             ],
             configuration_injectors=[
@@ -47,20 +44,17 @@ class TestDryRunComprehensive:
                     name="test_env",
                     kind="env_var",
                     aliases=["TEST_VAR"],
-                    sources=["test_value"]
+                    sources=["test_value"],
                 ),
                 Injector(
                     name="test_named",
                     kind="named",
                     aliases=["--test"],
                     sources=["named_value"],
-                    connector="="
-                )
+                    connector="=",
+                ),
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["echo", "test"]
-            )
+            target=Target(working_dir="/tmp", command=["echo", "test"]),
         )
 
         context = build_runtime_context()
@@ -109,10 +103,7 @@ class TestDryRunComprehensive:
                 version="0.1",
                 configuration_providers=[
                     Provider(
-                        type="dotenv",
-                        id="dotenv",
-                        name="Test Dotenv",
-                        path=dotenv_path
+                        type="dotenv", id="dotenv", name="Test Dotenv", path=dotenv_path
                     )
                 ],
                 configuration_injectors=[
@@ -120,13 +111,10 @@ class TestDryRunComprehensive:
                         name="test_from_dotenv",
                         kind="env_var",
                         aliases=["INJECTED_VAR"],
-                        sources=["${PROVIDER:dotenv:TEST_KEY}"]
+                        sources=["${PROVIDER:dotenv:TEST_KEY}"],
                     )
                 ],
-                target=Target(
-                    working_dir="/tmp",
-                    command=["echo", "test"]
-                )
+                target=Target(working_dir="/tmp", command=["echo", "test"]),
             )
 
             context = build_runtime_context()
@@ -155,20 +143,17 @@ class TestDryRunComprehensive:
                     name="secret_data",
                     kind="stdin_fragment",
                     sources=["secret123"],
-                    sensitive=True
+                    sensitive=True,
                 ),
                 Injector(
                     name="normal_data",
                     kind="env_var",
                     aliases=["NORMAL_VAR"],
                     sources=["normal_value"],
-                    sensitive=False
-                )
+                    sensitive=False,
+                ),
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["cat"]
-            )
+            target=Target(working_dir="/tmp", command=["cat"]),
         )
 
         context = build_runtime_context()
@@ -176,11 +161,13 @@ class TestDryRunComprehensive:
 
         # Find the sensitive injection
         secret_injection = next(
-            inj for inj in report.json_summary["injections"]
+            inj
+            for inj in report.json_summary["injections"]
             if inj["name"] == "secret_data"
         )
         normal_injection = next(
-            inj for inj in report.json_summary["injections"]
+            inj
+            for inj in report.json_summary["injections"]
             if inj["name"] == "normal_data"
         )
 
@@ -210,13 +197,10 @@ class TestLiveRunComprehensive:
                     name="test_var",
                     kind="env_var",
                     aliases=["INJECTED_TEST_VAR"],
-                    sources=["test_value_123"]
+                    sources=["test_value_123"],
                 )
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["env"]
-            )
+            target=Target(working_dir="/tmp", command=["env"]),
         )
 
         context = build_runtime_context()
@@ -250,13 +234,10 @@ class TestLiveRunComprehensive:
                     kind="named",
                     aliases=["--format"],
                     sources=["json"],
-                    connector="="
+                    connector="=",
                 )
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["echo", "test"]
-            )
+            target=Target(working_dir="/tmp", command=["echo", "test"]),
         )
 
         context = build_runtime_context()
@@ -288,13 +269,10 @@ class TestLiveRunComprehensive:
                     name="input_file",
                     kind="positional",
                     sources=["/etc/hostname"],
-                    position=0
+                    position=0,
                 )
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["cat"]
-            )
+            target=Target(working_dir="/tmp", command=["cat"]),
         )
 
         context = build_runtime_context()
@@ -335,13 +313,10 @@ class TestFileInjectorComprehensive:
                     kind="file",
                     aliases=["--config"],
                     sources=[config_content],
-                    connector="="
+                    connector="=",
                 )
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["cat", "${--config}"]
-            )
+            target=Target(working_dir="/tmp", command=["cat", "${--config}"]),
         )
 
         context = build_runtime_context()
@@ -368,13 +343,10 @@ class TestFileInjectorComprehensive:
                     kind="file",
                     aliases=["--config"],
                     sources=[config_content],
-                    connector="="
+                    connector="=",
                 )
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["echo", "test"]
-            )
+            target=Target(working_dir="/tmp", command=["echo", "test"]),
         )
 
         context = build_runtime_context()
@@ -420,20 +392,17 @@ class TestFileInjectorComprehensive:
                     kind="file",
                     aliases=["--config1"],
                     sources=["config1_content"],
-                    connector="="
+                    connector="=",
                 ),
                 Injector(
                     name="config2",
                     kind="file",
                     aliases=["--config2"],
                     sources=["config2_content"],
-                    connector="="
-                )
+                    connector="=",
+                ),
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["echo", "test"]
-            )
+            target=Target(working_dir="/tmp", command=["echo", "test"]),
         )
 
         context = build_runtime_context()
@@ -482,13 +451,10 @@ class TestStdinInjectorComprehensive:
                 Injector(
                     name="input_data",
                     kind="stdin_fragment",
-                    sources=["line1\nline2\nline3"]
+                    sources=["line1\nline2\nline3"],
                 )
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["cat"]
-            )
+            target=Target(working_dir="/tmp", command=["cat"]),
         )
 
         context = build_runtime_context()
@@ -510,16 +476,9 @@ class TestStdinInjectorComprehensive:
             version="0.1",
             configuration_providers=[],
             configuration_injectors=[
-                Injector(
-                    name="input_data",
-                    kind="stdin_fragment",
-                    sources=[test_input]
-                )
+                Injector(name="input_data", kind="stdin_fragment", sources=[test_input])
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["cat"]
-            )
+            target=Target(working_dir="/tmp", command=["cat"]),
         )
 
         context = build_runtime_context()
@@ -550,25 +509,16 @@ class TestStdinInjectorComprehensive:
             configuration_providers=[],
             configuration_injectors=[
                 Injector(
-                    name="fragment1",
-                    kind="stdin_fragment",
-                    sources=["first fragment"]
+                    name="fragment1", kind="stdin_fragment", sources=["first fragment"]
                 ),
                 Injector(
-                    name="fragment2",
-                    kind="stdin_fragment",
-                    sources=["second fragment"]
+                    name="fragment2", kind="stdin_fragment", sources=["second fragment"]
                 ),
                 Injector(
-                    name="fragment3",
-                    kind="stdin_fragment",
-                    sources=["third fragment"]
-                )
+                    name="fragment3", kind="stdin_fragment", sources=["third fragment"]
+                ),
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["cat"]
-            )
+            target=Target(working_dir="/tmp", command=["cat"]),
         )
 
         context = build_runtime_context()
@@ -616,7 +566,7 @@ class TestComplexIntegrationScenarios:
                         type="dotenv",
                         id="dotenv",
                         name="Configuration",
-                        path=dotenv_path
+                        path=dotenv_path,
                     )
                 ],
                 configuration_injectors=[
@@ -625,7 +575,7 @@ class TestComplexIntegrationScenarios:
                         name="db_host",
                         kind="env_var",
                         aliases=["DATABASE_HOST"],
-                        sources=["${PROVIDER:dotenv:DB_HOST}"]
+                        sources=["${PROVIDER:dotenv:DB_HOST}"],
                     ),
                     # Named argument injection
                     Injector(
@@ -633,35 +583,34 @@ class TestComplexIntegrationScenarios:
                         kind="named",
                         aliases=["--port"],
                         sources=["${PROVIDER:dotenv:DB_PORT}"],
-                        connector="="
+                        connector="=",
                     ),
                     # Positional argument injection
                     Injector(
                         name="operation",
                         kind="positional",
                         sources=["status"],
-                        position=0
+                        position=0,
                     ),
                     # File injection
                     Injector(
                         name="config_file",
                         kind="file",
                         aliases=["--config"],
-                        sources=["host=${PROVIDER:dotenv:DB_HOST}\nport=${PROVIDER:dotenv:DB_PORT}"],
-                        connector="="
+                        sources=[
+                            "host=${PROVIDER:dotenv:DB_HOST}\nport=${PROVIDER:dotenv:DB_PORT}"
+                        ],
+                        connector="=",
                     ),
                     # Stdin fragment injection (sensitive)
                     Injector(
                         name="secret_input",
                         kind="stdin_fragment",
                         sources=["${PROVIDER:dotenv:SECRET_KEY}"],
-                        sensitive=True
-                    )
+                        sensitive=True,
+                    ),
                 ],
-                target=Target(
-                    working_dir="/tmp",
-                    command=["echo", "Running command"]
-                )
+                target=Target(working_dir="/tmp", command=["echo", "Running command"]),
             )
 
             # Test dry-run first
@@ -678,7 +627,8 @@ class TestComplexIntegrationScenarios:
 
             # Verify sensitive data is masked in dry-run
             secret_injection = next(
-                inj for inj in report.json_summary["injections"]
+                inj
+                for inj in report.json_summary["injections"]
                 if inj["name"] == "secret_input"
             )
             assert secret_injection["sensitive"] is True
@@ -695,8 +645,7 @@ class TestComplexIntegrationScenarios:
 
             # Verify file was created
             config_injector = next(
-                inj for inj in resolved_injectors
-                if inj.injector.name == "config_file"
+                inj for inj in resolved_injectors if inj.injector.name == "config_file"
             )
             assert len(config_injector.files_created) == 1
             config_file_path = config_injector.files_created[0]

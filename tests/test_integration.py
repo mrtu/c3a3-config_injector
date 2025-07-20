@@ -48,48 +48,46 @@ class TestDryRunIntegration:
                         passthrough=True,
                         filter_chain=[
                             FilterRule(include="PATH"),
-                            FilterRule(include="HOME")
-                        ]
+                            FilterRule(include="HOME"),
+                        ],
                     ),
                     Provider(
-                        type="dotenv",
-                        id="dotenv",
-                        name="Dotenv File",
-                        path=dotenv_path
-                    )
+                        type="dotenv", id="dotenv", name="Dotenv File", path=dotenv_path
+                    ),
                 ],
                 configuration_injectors=[
                     Injector(
                         name="database_host",
                         kind="env_var",
                         aliases=["DATABASE_HOST"],
-                        sources=["${PROVIDER:dotenv:DB_HOST}"]
+                        sources=["${PROVIDER:dotenv:DB_HOST}"],
                     ),
                     Injector(
                         name="database_port",
                         kind="named",
                         aliases=["--port"],
                         sources=["${PROVIDER:dotenv:DB_PORT}"],
-                        type="int"
+                        type="int",
                     ),
                     Injector(
                         name="config_file",
                         kind="file",
                         aliases=["--config"],
-                        sources=["host=${PROVIDER:dotenv:DB_HOST}\nport=${PROVIDER:dotenv:DB_PORT}"],
-                        connector="="
+                        sources=[
+                            "host=${PROVIDER:dotenv:DB_HOST}\nport=${PROVIDER:dotenv:DB_PORT}"
+                        ],
+                        connector="=",
                     ),
                     Injector(
                         name="api_key",
                         kind="stdin_fragment",
                         sources=["${PROVIDER:dotenv:API_KEY}"],
-                        sensitive=True
-                    )
+                        sensitive=True,
+                    ),
                 ],
                 target=Target(
-                    working_dir="/tmp",
-                    command=["myapp", "${--port}", "${--config}"]
-                )
+                    working_dir="/tmp", command=["myapp", "${--port}", "${--config}"]
+                ),
             )
 
             # Build runtime context
@@ -125,7 +123,8 @@ class TestDryRunIntegration:
 
             # Verify sensitive data is masked
             api_key_injection = next(
-                inj for inj in report.json_summary["injections"]
+                inj
+                for inj in report.json_summary["injections"]
                 if inj["name"] == "api_key"
             )
             assert api_key_injection["sensitive"] is True
@@ -148,10 +147,7 @@ class TestDryRunIntegration:
             version="0.1",
             configuration_providers=[
                 Provider(
-                    type="env",
-                    id="env",
-                    name="Environment Variables",
-                    passthrough=True
+                    type="env", id="env", name="Environment Variables", passthrough=True
                 )
             ],
             configuration_injectors=[
@@ -160,20 +156,17 @@ class TestDryRunIntegration:
                     kind="named",
                     aliases=["--debug"],
                     sources=["true"],
-                    when="${ENV:DEBUG|false} == 'true'"
+                    when="${ENV:DEBUG|false} == 'true'",
                 ),
                 Injector(
                     name="production_flag",
                     kind="named",
                     aliases=["--production"],
                     sources=["true"],
-                    when="${ENV:PRODUCTION|false} == 'true'"
-                )
+                    when="${ENV:PRODUCTION|false} == 'true'",
+                ),
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["myapp"]
-            )
+            target=Target(working_dir="/tmp", command=["myapp"]),
         )
 
         # Test with DEBUG=true
@@ -187,7 +180,9 @@ class TestDryRunIntegration:
             assert "production_flag" not in injection_names
 
         # Test with PRODUCTION=true
-        with patch.dict(os.environ, {"PRODUCTION": "true", "DEBUG": "false"}, clear=False):
+        with patch.dict(
+            os.environ, {"PRODUCTION": "true", "DEBUG": "false"}, clear=False
+        ):
             context = build_runtime_context()
             report = dry_run(spec, context)
 
@@ -206,10 +201,7 @@ class TestLiveRunIntegration:
             version="0.1",
             configuration_providers=[
                 Provider(
-                    type="env",
-                    id="env",
-                    name="Environment Variables",
-                    passthrough=True
+                    type="env", id="env", name="Environment Variables", passthrough=True
                 )
             ],
             configuration_injectors=[
@@ -217,13 +209,10 @@ class TestLiveRunIntegration:
                     name="test_var",
                     kind="env_var",
                     aliases=["TEST_INTEGRATION_VAR"],
-                    sources=["integration_test_value"]
+                    sources=["integration_test_value"],
                 )
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["env"]
-            )
+            target=Target(working_dir="/tmp", command=["env"]),
         )
 
         # Build runtime context
@@ -264,19 +253,16 @@ class TestLiveRunIntegration:
                     kind="named",
                     aliases=["--format"],
                     sources=["json"],
-                    connector="="
+                    connector="=",
                 ),
                 Injector(
                     name="input_file",
                     kind="positional",
                     sources=["/etc/passwd"],
-                    position=0
-                )
+                    position=0,
+                ),
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["echo", "Processing"]
-            )
+            target=Target(working_dir="/tmp", command=["echo", "Processing"]),
         )
 
         # Build runtime context
@@ -335,13 +321,10 @@ logging:
                     kind="file",
                     aliases=["--config"],
                     sources=[config_content.strip()],
-                    connector="="
+                    connector="=",
                 )
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["cat", "${--config}"]
-            )
+            target=Target(working_dir="/tmp", command=["cat", "${--config}"]),
         )
 
         # Test dry-run mode
@@ -349,9 +332,12 @@ logging:
         report = dry_run(spec, context)
 
         # Verify dry-run shows file injection plan
-        assert "config_file" in [inj["name"] for inj in report.json_summary["injections"]]
+        assert "config_file" in [
+            inj["name"] for inj in report.json_summary["injections"]
+        ]
         config_injection = next(
-            inj for inj in report.json_summary["injections"]
+            inj
+            for inj in report.json_summary["injections"]
             if inj["name"] == "config_file"
         )
         assert config_injection["kind"] == "file"
@@ -363,7 +349,9 @@ logging:
 
         resolved_injectors = []
         for injector in spec.configuration_injectors:
-            resolved = resolve_injector(injector, context, providers, token_engine, spec)
+            resolved = resolve_injector(
+                injector, context, providers, token_engine, spec
+            )
             resolved_injectors.append(resolved)
 
         # Verify file was created
@@ -373,7 +361,7 @@ logging:
         assert config_content.strip() == file_path.read_text().strip()
 
         # Build and execute
-        build = build_env_and_argv(spec, resolved_injectors, context)
+        build = build_env_and_argv(spec, resolved_injectors, context, token_engine)
         stream_writer = StreamWriter()
         result = execute(spec, build, stream_writer, resolved_injectors, context)
 
@@ -394,20 +382,24 @@ logging:
                     kind="file",
                     aliases=["--config1"],
                     sources=["config1_content"],
-                    connector="="
+                    connector="=",
                 ),
                 Injector(
                     name="config2",
                     kind="file",
                     aliases=["--config2"],
                     sources=["config2_content"],
-                    connector="="
-                )
+                    connector="=",
+                ),
             ],
             target=Target(
                 working_dir="/tmp",
-                command=["sh", "-c", "cat ${--config1} && echo '---' && cat ${--config2}"]
-            )
+                command=[
+                    "sh",
+                    "-c",
+                    "cat ${--config1} && echo '---' && cat ${--config2}",
+                ],
+            ),
         )
 
         # Build runtime context
@@ -419,7 +411,9 @@ logging:
 
         resolved_injectors = []
         for injector in spec.configuration_injectors:
-            resolved = resolve_injector(injector, context, providers, token_engine, spec)
+            resolved = resolve_injector(
+                injector, context, providers, token_engine, spec
+            )
             resolved_injectors.append(resolved)
 
         # Verify both files were created
@@ -459,13 +453,10 @@ class TestStdinInjectorIntegration:
                 Injector(
                     name="input_data",
                     kind="stdin_fragment",
-                    sources=["line1\nline2\nline3"]
+                    sources=["line1\nline2\nline3"],
                 )
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["cat"]
-            )
+            target=Target(working_dir="/tmp", command=["cat"]),
         )
 
         # Test dry-run mode
@@ -473,9 +464,12 @@ class TestStdinInjectorIntegration:
         report = dry_run(spec, context)
 
         # Verify dry-run shows stdin injection plan
-        assert "input_data" in [inj["name"] for inj in report.json_summary["injections"]]
+        assert "input_data" in [
+            inj["name"] for inj in report.json_summary["injections"]
+        ]
         stdin_injection = next(
-            inj for inj in report.json_summary["injections"]
+            inj
+            for inj in report.json_summary["injections"]
             if inj["name"] == "input_data"
         )
         assert stdin_injection["kind"] == "stdin_fragment"
@@ -510,25 +504,16 @@ class TestStdinInjectorIntegration:
             configuration_providers=[],
             configuration_injectors=[
                 Injector(
-                    name="fragment1",
-                    kind="stdin_fragment",
-                    sources=["first fragment"]
+                    name="fragment1", kind="stdin_fragment", sources=["first fragment"]
                 ),
                 Injector(
-                    name="fragment2",
-                    kind="stdin_fragment",
-                    sources=["second fragment"]
+                    name="fragment2", kind="stdin_fragment", sources=["second fragment"]
                 ),
                 Injector(
-                    name="fragment3",
-                    kind="stdin_fragment",
-                    sources=["third fragment"]
-                )
+                    name="fragment3", kind="stdin_fragment", sources=["third fragment"]
+                ),
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["cat"]
-            )
+            target=Target(working_dir="/tmp", command=["cat"]),
         )
 
         # Build runtime context
@@ -568,13 +553,10 @@ class TestStdinInjectorIntegration:
                     name="secret_input",
                     kind="stdin_fragment",
                     sources=["password=secret123"],
-                    sensitive=True
+                    sensitive=True,
                 )
             ],
-            target=Target(
-                working_dir="/tmp",
-                command=["cat"]
-            )
+            target=Target(working_dir="/tmp", command=["cat"]),
         )
 
         # Test dry-run mode with sensitive data
@@ -583,7 +565,8 @@ class TestStdinInjectorIntegration:
 
         # Verify sensitive data is masked in dry-run
         stdin_injection = next(
-            inj for inj in report.json_summary["injections"]
+            inj
+            for inj in report.json_summary["injections"]
             if inj["name"] == "secret_input"
         )
         assert stdin_injection["sensitive"] is True
@@ -611,7 +594,7 @@ class TestComplexIntegrationScenarios:
                         type="dotenv",
                         id="dotenv",
                         name="Configuration File",
-                        path=dotenv_path
+                        path=dotenv_path,
                     )
                 ],
                 configuration_injectors=[
@@ -620,7 +603,7 @@ class TestComplexIntegrationScenarios:
                         name="db_host",
                         kind="env_var",
                         aliases=["DATABASE_HOST"],
-                        sources=["${PROVIDER:dotenv:DB_HOST}"]
+                        sources=["${PROVIDER:dotenv:DB_HOST}"],
                     ),
                     # Named argument injection
                     Injector(
@@ -629,35 +612,36 @@ class TestComplexIntegrationScenarios:
                         aliases=["--port"],
                         sources=["${PROVIDER:dotenv:DB_PORT}"],
                         connector="=",
-                        type="int"
+                        type="int",
                     ),
                     # Positional argument injection
                     Injector(
                         name="operation",
                         kind="positional",
                         sources=["migrate"],
-                        position=0
+                        position=0,
                     ),
                     # File injection
                     Injector(
                         name="config_file",
                         kind="file",
                         aliases=["--config"],
-                        sources=["host=${PROVIDER:dotenv:DB_HOST}\nport=${PROVIDER:dotenv:DB_PORT}"],
-                        connector="="
+                        sources=[
+                            "host=${PROVIDER:dotenv:DB_HOST}\nport=${PROVIDER:dotenv:DB_PORT}"
+                        ],
+                        connector="=",
                     ),
                     # Stdin fragment injection
                     Injector(
                         name="api_secret",
                         kind="stdin_fragment",
                         sources=["${PROVIDER:dotenv:API_SECRET}"],
-                        sensitive=True
-                    )
+                        sensitive=True,
+                    ),
                 ],
                 target=Target(
-                    working_dir="/tmp",
-                    command=["echo", "Running with args:"]
-                )
+                    working_dir="/tmp", command=["echo", "Running with args:"]
+                ),
             )
 
             # Test dry-run first
@@ -674,7 +658,8 @@ class TestComplexIntegrationScenarios:
 
             # Verify sensitive data is masked
             api_secret_injection = next(
-                inj for inj in report.json_summary["injections"]
+                inj
+                for inj in report.json_summary["injections"]
                 if inj["name"] == "api_secret"
             )
             assert api_secret_injection["sensitive"] is True
@@ -691,15 +676,14 @@ class TestComplexIntegrationScenarios:
 
             # Verify file was created
             config_file_injector = next(
-                inj for inj in resolved_injectors
-                if inj.name == "config_file"
+                inj for inj in resolved_injectors if inj.name == "config_file"
             )
             assert len(config_file_injector.files_created) == 1
             config_file_path = config_file_injector.files_created[0]
             assert config_file_path.exists()
 
             # Build and execute
-            build = build_env_and_argv(spec, resolved_injectors, context)
+            build = build_env_and_argv(spec, resolved_injectors, context, token_engine)
 
             # Verify environment variables
             assert "DATABASE_HOST" in build.env
@@ -775,8 +759,12 @@ target:
             report = dry_run(spec, context)
 
             # Verify dry-run works with loaded spec
-            assert "user_home" in [inj["name"] for inj in report.json_summary["injections"]]
-            assert "username" in [inj["name"] for inj in report.json_summary["injections"]]
+            assert "user_home" in [
+                inj["name"] for inj in report.json_summary["injections"]
+            ]
+            assert "username" in [
+                inj["name"] for inj in report.json_summary["injections"]
+            ]
 
             # Test live run
             providers = load_providers(spec, context)

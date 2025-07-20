@@ -7,8 +7,11 @@ from typing import Any
 # Constants
 MASKED_VALUE = "<masked>"
 
+
 # Utility functions
-def mask_sensitive_value(value: str | bytes | None, is_sensitive: bool) -> str | bytes | None:
+def mask_sensitive_value(
+    value: str | bytes | None, is_sensitive: bool
+) -> str | bytes | None:
     """Mask a sensitive value with a placeholder.
 
     Args:
@@ -25,12 +28,14 @@ def mask_sensitive_value(value: str | bytes | None, is_sensitive: bool) -> str |
         return MASKED_VALUE.encode("utf-8")
     return MASKED_VALUE
 
+
 # Type aliases
 EnvMap = dict[str, str]
 ProviderMap = dict[str, str]
 ProviderMaps = dict[str, ProviderMap]
 Argv = list[str]
 Errors = list[str]
+
 
 @dataclass
 class RuntimeContext:

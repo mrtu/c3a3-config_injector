@@ -12,10 +12,7 @@ from config_injector.providers import BwsProvider, create_provider
 def test_bws_provider_creation():
     """Test creating a BWS provider."""
     provider_config = Provider(
-        type="bws",
-        id="bws",
-        name="Bitwarden Secrets",
-        enabled=True
+        type="bws", id="bws", name="Bitwarden Secrets", enabled=True
     )
 
     provider = create_provider(provider_config)
@@ -28,22 +25,21 @@ def test_bws_provider_loading():
     """Test loading secrets from the BWS provider stub."""
     # Clean up any existing BWS environment variables
     for key in list(os.environ.keys()):
-        if key.startswith("BWS_") or "SECRET" in key.upper() or "BITWARDEN" in key.upper():
+        if (
+            key.startswith("BWS_")
+            or "SECRET" in key.upper()
+            or "BITWARDEN" in key.upper()
+        ):
             del os.environ[key]
 
     # Create a spec with a BWS provider
     spec = Spec(
         version="0.1",
         configuration_providers=[
-            Provider(
-                type="bws",
-                id="bws",
-                name="Bitwarden Secrets",
-                enabled=True
-            )
+            Provider(type="bws", id="bws", name="Bitwarden Secrets", enabled=True)
         ],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Create a runtime context with environment variables that should be detected by the BWS provider
@@ -65,7 +61,11 @@ def test_bws_provider_loading():
 
     # Clean up environment variables after test
     for key in list(os.environ.keys()):
-        if key.startswith("BWS_") or "SECRET" in key.upper() or "BITWARDEN" in key.upper():
+        if (
+            key.startswith("BWS_")
+            or "SECRET" in key.upper()
+            or "BITWARDEN" in key.upper()
+        ):
             del os.environ[key]
 
 
@@ -73,7 +73,11 @@ def test_bws_provider_with_filter_chain():
     """Test BWS provider with filter chain."""
     # Clean up any existing BWS environment variables
     for key in list(os.environ.keys()):
-        if key.startswith("BWS_") or "SECRET" in key.upper() or "BITWARDEN" in key.upper():
+        if (
+            key.startswith("BWS_")
+            or "SECRET" in key.upper()
+            or "BITWARDEN" in key.upper()
+        ):
             del os.environ[key]
 
     # Create a spec with a BWS provider that has a filter chain
@@ -87,11 +91,11 @@ def test_bws_provider_with_filter_chain():
                 enabled=True,
                 filter_chain=[
                     {"include": "^BWS_.*$"}  # Only include keys starting with BWS_
-                ]
+                ],
             )
         ],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Create a runtime context with environment variables
@@ -112,7 +116,11 @@ def test_bws_provider_with_filter_chain():
 
     # Clean up environment variables after test
     for key in list(os.environ.keys()):
-        if key.startswith("BWS_") or "SECRET" in key.upper() or "BITWARDEN" in key.upper():
+        if (
+            key.startswith("BWS_")
+            or "SECRET" in key.upper()
+            or "BITWARDEN" in key.upper()
+        ):
             del os.environ[key]
 
 
@@ -122,22 +130,21 @@ def test_bws_provider_in_load_providers():
 
     # Clean up any existing BWS environment variables
     for key in list(os.environ.keys()):
-        if key.startswith("BWS_") or "SECRET" in key.upper() or "BITWARDEN" in key.upper():
+        if (
+            key.startswith("BWS_")
+            or "SECRET" in key.upper()
+            or "BITWARDEN" in key.upper()
+        ):
             del os.environ[key]
 
     # Create a spec with a BWS provider
     spec = Spec(
         version="0.1",
         configuration_providers=[
-            Provider(
-                type="bws",
-                id="bws",
-                name="Bitwarden Secrets",
-                enabled=True
-            )
+            Provider(type="bws", id="bws", name="Bitwarden Secrets", enabled=True)
         ],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Create a runtime context with environment variables
@@ -153,7 +160,11 @@ def test_bws_provider_in_load_providers():
 
     # Clean up environment variables after test
     for key in list(os.environ.keys()):
-        if key.startswith("BWS_") or "SECRET" in key.upper() or "BITWARDEN" in key.upper():
+        if (
+            key.startswith("BWS_")
+            or "SECRET" in key.upper()
+            or "BITWARDEN" in key.upper()
+        ):
             del os.environ[key]
 
 

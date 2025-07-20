@@ -17,7 +17,7 @@ def test_sequence_counter_increment():
         version="0.1",
         configuration_providers=[],
         configuration_injectors=[],
-        target=Target(working_dir="/tmp", command=["echo", "test"])
+        target=Target(working_dir="/tmp", command=["echo", "test"]),
     )
 
     # Build runtime context
@@ -57,9 +57,9 @@ def test_sequence_counter_in_path():
                     path=f"{tmpdir}/test-${{SEQ}}.log",
                     tee_terminal=False,
                     append=False,
-                    format="text"
-                )
-            )
+                    format="text",
+                ),
+            ),
         )
 
         # Build runtime context
@@ -69,7 +69,7 @@ def test_sequence_counter_in_path():
         token_engine = TokenEngine(context)
 
         # Prepare the stream
-        config = prepare_stream(spec.target.stdout, context, token_engine)
+        config = prepare_stream(spec.target.stdout, context, token_engine, spec)
 
         # Check that the path has the expected format
         assert str(config.path) == f"{tmpdir}/test-0001.log"
@@ -78,7 +78,7 @@ def test_sequence_counter_in_path():
         context.seq += 1
 
         # Prepare the stream again
-        config = prepare_stream(spec.target.stdout, context, token_engine)
+        config = prepare_stream(spec.target.stdout, context, token_engine, spec)
 
         # Check that the path has the expected format with incremented sequence
         assert str(config.path) == f"{tmpdir}/test-0002.log"
@@ -95,33 +95,33 @@ def test_collision_safe_naming_patterns():
 
         # Test PID pattern
         stream = Stream(path=f"{tmpdir}/app-${{PID}}.log")
-        config = prepare_stream(stream, context, token_engine)
+        config = prepare_stream(stream, context, token_engine, None)
         assert str(config.path) == f"{tmpdir}/app-{context.pid}.log"
 
         # Test SEQ pattern
         stream = Stream(path=f"{tmpdir}/app-${{SEQ}}.log")
-        config = prepare_stream(stream, context, token_engine)
+        config = prepare_stream(stream, context, token_engine, None)
         assert str(config.path) == f"{tmpdir}/app-0001.log"
 
         # Test DATE/TIME pattern
         stream = Stream(path=f"{tmpdir}/app-${{DATE:%Y%m%d}}-${{TIME:%H%M%S}}.log")
-        config = prepare_stream(stream, context, token_engine)
+        config = prepare_stream(stream, context, token_engine, None)
         date_str = context.now.strftime("%Y%m%d")
         time_str = context.now.strftime("%H%M%S")
         assert str(config.path) == f"{tmpdir}/app-{date_str}-{time_str}.log"
 
         # Test UUID pattern
         stream = Stream(path=f"{tmpdir}/app-${{UUID}}.log")
-        config = prepare_stream(stream, context, token_engine)
+        config = prepare_stream(stream, context, token_engine, None)
         path_str = str(config.path)
         assert path_str.startswith(f"{tmpdir}/app-")
         assert path_str.endswith(".log")
-        uuid_part = path_str[len(f"{tmpdir}/app-"):-4]
+        uuid_part = path_str[len(f"{tmpdir}/app-") : -4]
         assert len(uuid_part) == 36  # Standard UUID length
 
         # Test combined pattern
         stream = Stream(path=f"{tmpdir}/app-${{PID}}-${{SEQ}}.log")
-        config = prepare_stream(stream, context, token_engine)
+        config = prepare_stream(stream, context, token_engine, None)
         assert str(config.path) == f"{tmpdir}/app-{context.pid}-0001.log"
 
 

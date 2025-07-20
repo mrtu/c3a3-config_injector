@@ -1,4 +1,4 @@
-"""Pydantic models for the Configuration Wrapping Framework."""
+"""Configuration models for the Configuration Wrapping Framework."""
 
 from __future__ import annotations
 
@@ -45,9 +45,9 @@ class Provider(BaseModel):
     filter_chain: list[FilterRule | dict[str, str] | str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def _normalize_filter_chain(self):
+    def _normalize_filter_chain(self) -> Provider:
         """Convert filter_chain items to FilterRule objects."""
-        normalized_chain = []
+        normalized_chain: list[FilterRule] = []
         for item in self.filter_chain:
             if isinstance(item, FilterRule):
                 normalized_chain.append(item)
@@ -58,7 +58,8 @@ class Provider(BaseModel):
                 normalized_chain.append(FilterRule(include=item))
             else:
                 raise ValueError(f"Invalid filter_chain item: {item}")
-        self.filter_chain = normalized_chain
+        # Cast to the expected type to avoid mypy issues
+        self.filter_chain = normalized_chain  # type: ignore[assignment]
         return self
 
 
@@ -110,5 +111,5 @@ class Spec(BaseModel):
     configuration_providers: list[Provider]
     configuration_injectors: list[Injector]
     target: Target
-    profiles: dict[str, Any] | None = None    # extension
+    profiles: dict[str, Any] | None = None  # extension
     validation: dict[str, Any] | None = None  # extension

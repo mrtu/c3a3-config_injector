@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .core import RuntimeContext
-    from .models import Stream
+    from .models import Spec, Stream
     from .token_engine import TokenEngine
 
 
@@ -28,7 +28,11 @@ class StreamConfig:
 class StreamWriter:
     """Writer for managing output streams."""
 
-    def __init__(self, stdout_config: StreamConfig | None = None, stderr_config: StreamConfig | None = None):
+    def __init__(
+        self,
+        stdout_config: StreamConfig | None = None,
+        stderr_config: StreamConfig | None = None,
+    ):
         self.stdout_config = stdout_config
         self.stderr_config = stderr_config
 
@@ -36,16 +40,20 @@ class StreamWriter:
         self.stderr_file = None
 
         # Sensitive values to mask in output
-        self.sensitive_values = []
+        self.sensitive_values: list[str] = []
 
         # Open files if needed
         if self.stdout_config and self.stdout_config.path:
             mode = "a" if self.stdout_config.append else "w"
-            self.stdout_file = open(self.stdout_config.path, mode, encoding="utf-8")  # noqa: SIM115
+            self.stdout_file = open(  # noqa: SIM115
+                self.stdout_config.path, mode, encoding="utf-8"
+            )
 
         if self.stderr_config and self.stderr_config.path:
             mode = "a" if self.stderr_config.append else "w"
-            self.stderr_file = open(self.stderr_config.path, mode, encoding="utf-8")  # noqa: SIM115
+            self.stderr_file = open(  # noqa: SIM115
+                self.stderr_config.path, mode, encoding="utf-8"
+            )
 
     def register_sensitive_values(self, values: list[str]) -> None:
         """Register sensitive values that should be masked in output."""
@@ -73,7 +81,7 @@ class StreamWriter:
         masked_text = self._mask_sensitive_data(text)
 
         # Write to file if configured
-        if self.stdout_file:
+        if self.stdout_file and self.stdout_config:
             if self.stdout_config.format == "json":
                 # Write as JSON lines
                 for line in masked_text.splitlines():
@@ -92,10 +100,8 @@ class StreamWriter:
 
         # Write to terminal if tee is enabled
         if self.stdout_config and self.stdout_config.tee_terminal:
-            # Convert masked text back to bytes
-            masked_data = masked_text.encode("utf-8")
-            sys.stdout.buffer.write(masked_data)
-            sys.stdout.buffer.flush()
+            sys.stdout.write(masked_text)
+            sys.stdout.flush()
 
     def write_stderr(self, data: bytes) -> None:
         """Write data to stderr stream."""
@@ -106,7 +112,7 @@ class StreamWriter:
         masked_text = self._mask_sensitive_data(text)
 
         # Write to file if configured
-        if self.stderr_file:
+        if self.stderr_file and self.stderr_config:
             if self.stderr_config.format == "json":
                 # Write as JSON lines
                 for line in masked_text.splitlines():
@@ -125,57 +131,50 @@ class StreamWriter:
 
         # Write to terminal if tee is enabled
         if self.stderr_config and self.stderr_config.tee_terminal:
-            # Convert masked text back to bytes
-            masked_data = masked_text.encode("utf-8")
-            sys.stderr.buffer.write(masked_data)
-            sys.stderr.buffer.flush()
+            sys.stderr.write(masked_text)
+            sys.stderr.flush()
 
     def close(self) -> None:
-        """Close all file handles."""
+        """Close all open file handles."""
         if self.stdout_file:
             self.stdout_file.close()
-            self.stdout_file = None
-
         if self.stderr_file:
             self.stderr_file.close()
-            self.stderr_file = None
 
 
-def prepare_stream(stream: Stream, _context: RuntimeContext, token_engine: TokenEngine, spec=None) -> StreamConfig:
-    """Prepare stream configuration by expanding tokens in path.
+def prepare_stream(
+    stream: Stream | None,
+    _context: RuntimeContext,
+    token_engine: TokenEngine,
+    spec: Spec | None = None,
+) -> StreamConfig:
+    """Prepare a stream configuration from a Stream model."""
+    if stream is None:
+        # Use default format from spec if available
+        default_format = (
+            "json" if spec and spec.default_logging_format == "json" else "text"
+        )
+        return StreamConfig(
+            path=None,
+            tee_terminal=False,
+            append=False,
+            format=default_format,
+        )
 
-    Supports collision-safe naming using the following tokens:
-    - ${PID} - Process ID (e.g., "12345")
-    - ${SEQ} - Sequence number, incremented per invocation (e.g., "0001")
-    - ${UUID} - Universally unique identifier (e.g., "550e8400-e29b-41d4-a716-446655440000")
-    - ${DATE:format} - Current date with specified format (e.g., "${DATE:%Y%m%d}" -> "20230405")
-    - ${TIME:format} - Current time with specified format (e.g., "${TIME:%H%M%S}" -> "142536")
-
-    Examples of collision-safe naming patterns:
-    - "logs/app-${PID}.log" - Use process ID to avoid collisions between processes
-    - "logs/app-${SEQ}.log" - Use sequence number for sequential files
-    - "logs/app-${DATE:%Y%m%d}-${TIME:%H%M%S}.log" - Use timestamp for time-based naming
-    - "logs/app-${UUID}.log" - Use UUID for guaranteed uniqueness
-    - "logs/app-${PID}-${SEQ}.log" - Combine PID and sequence for process-specific sequences
-    """
     path = None
-    if stream and stream.path:
+    if stream.path:
+        # Expand tokens in the path
         expanded_path = token_engine.expand(stream.path)
-        path = Path(expanded_path).expanduser().resolve()
+        path = Path(expanded_path)
 
-        # Ensure parent directory exists
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Use the stream's format if specified, otherwise use the spec's default_logging_format if available
-    format = "text"
-    if stream and hasattr(stream, "format") and stream.format != "text":
-        format = stream.format
-    elif spec and spec.default_logging_format:
-        format = spec.default_logging_format
+    # Use default_logging_format from spec if stream format is the default "text"
+    format_to_use = stream.format
+    if stream.format == "text" and spec and spec.default_logging_format:
+        format_to_use = spec.default_logging_format
 
     return StreamConfig(
         path=path,
-        tee_terminal=stream.tee_terminal if stream else False,
-        append=stream.append if stream else False,
-        format=format,
+        tee_terminal=stream.tee_terminal,
+        append=stream.append,
+        format=format_to_use,
     )

@@ -14,9 +14,15 @@ if TYPE_CHECKING:
 class TokenEngine:
     """Engine for expanding ${...} tokens in strings."""
 
-    def __init__(self, context: RuntimeContext, provider_maps: ProviderMaps | None = None):
+    def __init__(
+        self,
+        context: RuntimeContext,
+        provider_maps: ProviderMaps | None = None,
+        alias_tokens: dict[str, str] | None = None,
+    ):
         self.context = context
         self.provider_maps = provider_maps or {}
+        self.alias_tokens = alias_tokens or {}
 
     def expand(self, template: str) -> str:
         """Expand all tokens in a template string."""
@@ -122,6 +128,10 @@ class TokenEngine:
 
         if token == "SEQ":
             return f"{self.context.seq:04d}", warnings
+
+        # Alias tokens (for injector aliases)
+        if token in self.alias_tokens:
+            return self.alias_tokens[token], warnings
 
         # Unknown token
         warnings.append(f"Unknown token: {token}")
